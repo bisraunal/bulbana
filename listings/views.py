@@ -249,10 +249,10 @@ def toggle_favorite_ajax_view(request, listing_id):
 @require_POST
 def chatbot_assistant_ajax_view(request):
     """
-    🤖 GELİŞMİŞ & DOĞRU AKILLI CHATBOT ASİSTANI
-    - Selamlama, soru sorma ve sohbeti ayırt eder.
-    - Kriter yoksa ASLA rastgele ilan uydurmaz.
-    - Sadece kullanıcının istediği kategori, konum ve bütçeye tam uyan ilanları filtreler.
+    🤖 KESİN VE DOĞRU HEDEFLEMELİ AKILLI CHATBOT ASİSTANI
+    - Telefon istendiğinde ASLA laptop/MacBook göstermez.
+    - Bilgisayar istendiğinde ASLA telefon göstermez.
+    - Uygun fiyat dendiğinde en ekonomik tescilli ürünleri sıralar.
     """
     session_key = _get_session_key(request)
     client_ip = request.META.get('REMOTE_ADDR', session_key)
@@ -287,66 +287,23 @@ def chatbot_assistant_ajax_view(request):
 
     msg_norm = norm_tr(msg_lower)
 
-    # 1. Selam / Sohbet / Ne yapabilirsin Kontrolü (Arama Amacı Yoksa)
-    greetings = ['selam', 'merhaba', 'slm', 'mrb', 'gunaydin', 'iyi gunler', 'iyi aksamlar', 'naber', 'nasilsin', 'hey', 'alo']
-    questions_about_bot = ['sen kimsin', 'ne yapabilirsin', 'ne ise yararsin', 'nasil calisir', 'yardim', 'help']
-    gratitude = ['tesekkur', 'sagol', 'eyvallah', 'tesekkurler', 'harika', 'super', 'eline saglik']
-
-    # Eğer sadece selam verildiyse
-    if any(msg_norm == g or msg_norm.startswith(g + ' ') for g in greetings) and len(msg_norm.split()) <= 3:
+    # 1. Selam / Sohbet Kontrolü
+    greetings = ['selam', 'merhaba', 'slm', 'mrb', 'gunaydin', 'iyi gunler', 'naber', 'nasilsin', 'hey']
+    if any(msg_norm == g or msg_norm.startswith(g + ' ') for g in greetings) and len(msg_norm.split()) <= 2:
         return JsonResponse({
             'status': 'success',
-            'reply': "Selam! 👋 Ben **BulBana Akıllı İlan Asistanı**.\n\nSana Sahibinden verileri üzerinden en doğru, tescilli ve bütçene uygun ilanları bulabilirim.\n\nNeye ihtiyacın var? Örneğin şunları yazabilirsin:\n- *\"Kadıköy'de 30 bin TL altı balkonlu kiralık ev\"*\n- *\"800 bin TL altı otomatik vites az yakan araba\"*\n- *\"35 bin TL altı garantili MacBook veya laptop\"*",
+            'reply': "Selam! 👋 Ben **BulBana Akıllı İlan Asistanı**.\n\nSana Sahibinden verileri üzerinden en doğru, tescilli ve bütçene uygun ilanları bulabilirim.\n\nNeye ihtiyacın var? Örneğin şunları yazabilirsin:\n- *\"Uygun fiyatlı bir telefon arıyorum\"*\n- *\"Kadıköy'de 30 bin TL altı kiralık ev\"*\n- *\"750 bin TL altı otomatik vites araba\"*",
             'listings': []
         })
 
-    if any(q in msg_norm for q in questions_about_bot):
-        return JsonResponse({
-            'status': 'success',
-            'reply': "Ben senin için Sahibinden üzerindeki ilanları tarayan yapay zeka asistanıyım! 🤖\n\nBana aradığın evin, arabanın veya eşyanın **konumunu, bütçeni ve istediğin özellikleri** yazarsan, sana sadece kriterlerine uyan tescilli ve güvenilir ilanları listelerim.",
-            'listings': []
-        })
+    # 2. Hassas Varlık (Entity) & Kategori Tespiti
+    is_phone = any(w in msg_norm for w in ['telefon', 'cep', 'iphone', 'samsung', 'xiaomi', 'redmi', 'galaxy'])
+    is_computer = any(w in msg_norm for w in ['laptop', 'bilgisayar', 'macbook', 'dizustu', 'kasa', 'pc', 'monitör', 'ram', 'ssd'])
+    is_real_estate = any(w in msg_norm for w in ['ev', 'daire', 'kiralik', 'satilik', 'konut', 'bina', 'oda', 'balkon', 'emlak', '1+1', '2+1', '3+1'])
+    is_vehicle = any(w in msg_norm for w in ['araba', 'otomobil', 'arac', 'vasita', 'clio', 'polo', 'egea', 'hatchback', 'sedan', 'vites', 'km', 'motor', 'dizel', 'benzin'])
+    is_budget_friendly = any(w in msg_norm for w in ['uygun', 'ucuz', 'hesapli', 'ekonomik', 'butce', 'firsat', 'ogrenci'])
 
-    if any(g in msg_norm for g in gratitude):
-        return JsonResponse({
-            'status': 'success',
-            'reply': "Rica ederim! 😊 Başka aradığın bir ev, araba veya teknolojik ürün varsa söylemen yeterli.",
-            'listings': []
-        })
-
-    # 2. Arama Kriterlerini Analiz Etme
-    # Kategori Tespiti
-    target_category = None
-    if any(w in msg_norm for w in ['ev', 'daire', 'kiralik', 'satilik', 'konut', 'bina', 'oda', 'balkon', 'emlak', '1+1', '2+1', '3+1', 'esyali']):
-        target_category = 'emlak'
-    elif any(w in msg_norm for w in ['araba', 'otomobil', 'arac', 'vasita', 'clio', 'polo', 'egea', 'hatchback', 'sedan', 'vites', 'km', 'motor', 'dizel', 'benzin', 'tramer']):
-        target_category = 'vasita'
-    elif any(w in msg_norm for w in ['laptop', 'bilgisayar', 'macbook', 'telefon', 'iphone', 'ram', 'ssd', 'monitör', 'cihaz', 'teknoloji']):
-        target_category = 'ikinci-el-teknoloji'
-
-    # Şehir ve İlçe Tespiti
-    city_map = {
-        'istanbul': 'İstanbul', 'ankara': 'Ankara', 'izmir': 'İzmir', 'bursa': 'Bursa', 'antalya': 'Antalya'
-    }
-    district_map = {
-        'kadikoy': 'Kadıköy', 'besiktas': 'Beşiktaş', 'cankaya': 'Çankaya', 'karsiyaka': 'Karşıyaka', 
-        'bornova': 'Bornova', 'moda': 'Moda', 'levent': 'Levent', 'bahcelievler': 'Bahçelievler',
-        'kozyatagi': 'Kozyatağı', 'bostanli': 'Bostanlı', 'kizilay': 'Kızılay', 'caddebostan': 'Caddebostan'
-    }
-
-    detected_city = None
-    detected_district = None
-
-    for k, v in city_map.items():
-        if k in msg_norm:
-            detected_city = v
-            break
-    for k, v in district_map.items():
-        if k in msg_norm:
-            detected_district = v
-            break
-
-    # Bütçe Tespiti
+    # Bütçe Sınırı Tespiti
     detected_max_price = None
     price_match = re.search(r'(\d+[\d\.,]*)\s*(bin|k|milyon|tl|lira)?\s*(alti|altinda|kadar|butce|civarı|butcem)?', msg_norm)
     if price_match:
@@ -365,113 +322,109 @@ def chatbot_assistant_ajax_view(request):
         except ValueError:
             pass
 
-    # 3. Veritabanında KESİN DOĞRULUKLA Filtreleme
+    # Şehir ve İlçe Tespiti
+    city_map = {'istanbul': 'İstanbul', 'ankara': 'Ankara', 'izmir': 'İzmir', 'bursa': 'Bursa', 'antalya': 'Antalya'}
+    district_map = {'kadikoy': 'Kadıköy', 'besiktas': 'Beşiktaş', 'cankaya': 'Çankaya', 'karsiyaka': 'Karşıyaka', 'bornova': 'Bornova', 'moda': 'Moda'}
+
+    detected_city = None
+    detected_district = None
+    for k, v in city_map.items():
+        if k in msg_norm: detected_city = v; break
+    for k, v in district_map.items():
+        if k in msg_norm: detected_district = v; break
+
+    # 3. KESİN VE HASSAS VERİTABANI SORGUSU
     listings_qs = Listing.objects.filter(is_active=True).select_related('category')
 
-    # Eğer kategori belirtildiyse KESİNLİKLE o kategoriye filtrele
-    if target_category:
-        listings_qs = listings_qs.filter(category__slug=target_category)
+    item_type_label = "İlanlar"
 
-    # Eğer şehir / ilçe belirtildiyse filtrele
+    if is_phone:
+        item_type_label = "Telefonlar"
+        # SADECE telefonları al, bilgisayarları KESİNLİKLE DIŞLA
+        listings_qs = listings_qs.filter(
+            Q(title__icontains='iphone') | Q(title__icontains='samsung') | Q(title__icontains='redmi') | Q(title__icontains='telefon') | Q(specs__icontains='Telefon')
+        ).exclude(
+            Q(title__icontains='macbook') | Q(title__icontains='laptop') | Q(title__icontains='bilgisayar') | Q(title__icontains='legion')
+        )
+    elif is_computer:
+        item_type_label = "Bilgisayar & Laptoplar"
+        # SADECE bilgisayarları al, telefonları KESİNLİKLE DIŞLA
+        listings_qs = listings_qs.filter(
+            Q(title__icontains='macbook') | Q(title__icontains='laptop') | Q(title__icontains='bilgisayar') | Q(title__icontains='legion') | Q(specs__icontains='Laptop')
+        ).exclude(
+            Q(title__icontains='iphone') | Q(title__icontains='samsung') | Q(title__icontains='redmi')
+        )
+    elif is_real_estate:
+        item_type_label = "Emlak & Daireler"
+        listings_qs = listings_qs.filter(category__slug='emlak')
+    elif is_vehicle:
+        item_type_label = "Vasıta & Araçlar"
+        listings_qs = listings_qs.filter(category__slug='vasita')
+
+    # Konum filtresi
     if detected_city:
         listings_qs = listings_qs.filter(Q(city__icontains=detected_city))
     if detected_district:
         listings_qs = listings_qs.filter(Q(district__icontains=detected_district) | Q(neighborhood__icontains=detected_district) | Q(title__icontains=detected_district))
 
-    # Eğer bütçe belirtildiyse filtrele
+    # Bütçe filtresi
     if detected_max_price:
-        # Bütçenin en fazla %15 toleranslısına kadar kabul et
         listings_qs = listings_qs.filter(price__lte=detected_max_price * 1.15)
 
-    # İlan başlığı ve özellik kelimeleri
-    feature_words = [w for w in ['balkon', 'otomatik', 'dizel', 'benzin', 'esyali', 'macbook', 'clio', 'polo', 'egea', 'iphone', '16gb', 'gaming', '2+1', '1+1', '3+1'] if w in msg_norm]
-    
+    # Sıralama (Uygun fiyat istendiyse önce en ucuzları getir)
+    if is_budget_friendly:
+        listings_qs = listings_qs.order_by('price')
+    else:
+        listings_qs = listings_qs.order_by('-created_at')
+
     candidates = list(listings_qs)
 
-    # Eğer hiç kriter algılanamadıysa ve genel bir soru sorulduysa:
-    if not target_category and not detected_city and not detected_district and not detected_max_price and not feature_words:
-        # Arama kelimelerini tüm metinde ara
-        words = [w for w in msg_norm.split() if len(w) >= 3]
-        if words:
-            query = Q()
-            for w in words:
-                query |= Q(title__icontains=w) | Q(description__icontains=w)
-            candidates = list(Listing.objects.filter(query, is_active=True))
-
-    # Eğer Kriter Girildi ama Eşleşen İlan Bulunamadıysa ASLA YALAN İLAN GÖSTERME
+    # Hiçbir şey bulunamadıysa ASLA alakasız ürün gösterme
     if not candidates:
-        criteria_summary = []
-        if target_category:
-            cat_obj = Category.objects.filter(slug=target_category).first()
-            if cat_obj: criteria_summary.append(f"Kategori: {cat_obj.name}")
-        if detected_city or detected_district:
-            loc = f"{detected_city or ''} {detected_district or ''}".strip()
-            criteria_summary.append(f"Konum: {loc}")
-        if detected_max_price:
-            criteria_summary.append(f"Maksimum Bütçe: {detected_max_price:,.0f} TL".replace(',', '.'))
-        if feature_words:
-            criteria_summary.append(f"Özellikler: {', '.join(feature_words)}")
-
-        summary_str = " (" + ", ".join(criteria_summary) + ")" if criteria_summary else ""
-
         return JsonResponse({
             'status': 'success',
-            'reply': f"Aradığın kriterlere uygun{summary_str} aktif bir ilan veritabanında şu anda bulunamadı. 🔍\n\nBütçeni biraz artırabilir veya farklı bir ilçe/özellik belirterek tekrar arama yapabilirsin.",
+            'reply': f"Aradığın kriterlere uygun **{item_type_label}** kategorisinde ilan şu anda bulunamadı. 🔍\n\nFiyat veya marka kriterlerini biraz esneterek tekrar arama yapabilirsin.",
             'listings': []
         })
 
-    # Puanlama & Nitelik Eşleştirme
+    # Puanlama & Açıklama
     scored_items = []
     for item in candidates:
-        score = 80
+        score = 85
         reasons = []
 
-        # Bütçe kontrolü
-        if detected_max_price:
-            if float(item.price) <= detected_max_price:
-                score += 10
-                reasons.append(f"💰 Bütçenizin altında ({item.formatted_price})")
-            else:
-                score -= 10
-                reasons.append(f"⚠️ Bütçenizin bir miktar üzerinde")
-
-        # Konum kontrolü
-        if detected_district and (detected_district.lower() in item.district.lower() or detected_district.lower() in item.neighborhood.lower()):
+        if is_budget_friendly:
             score += 10
-            reasons.append(f"📍 Birebir {item.district} bölgesinde")
-        elif detected_city and detected_city.lower() in item.city.lower():
-            score += 5
-            reasons.append(f"📍 {item.city} konumunda")
-
-        # Özellik kontrolü
-        full_item_txt = f"{item.title} {item.description} {str(item.specs)}".lower()
-        for fw in feature_words:
-            if fw in full_item_txt:
-                score += 5
-                reasons.append(f"✨ İstediğiniz '{fw}' niteliği mevcut")
+            reasons.append(f"💰 Uygun fiyatlı & bütçe dostu ({item.formatted_price})")
+        elif detected_max_price and float(item.price) <= detected_max_price:
+            score += 10
+            reasons.append(f"💰 Bütçenizin altında ({item.formatted_price})")
 
         if item.is_verified:
             reasons.append(f"🛡️ %{item.verification_score} Doğrulanmış & Tescilli İlan")
 
+        if detected_district or detected_city:
+            reasons.append(f"📍 {item.district}, {item.city} konumunda")
+
         scored_items.append({
             'item': item,
-            'score': min(100, max(50, score)),
+            'score': min(100, max(60, score)),
             'reasons': reasons
         })
 
     scored_items.sort(key=lambda x: x['score'], reverse=True)
     top_matches = scored_items[:3]
 
-    # Doğru ve Açıklayıcı Bot Yanıtı
-    reply_parts = ["Senin için kriterlerine uyan en doğru sonuçları buldum:"]
-    if detected_district or detected_city:
-        reply_parts.append(f"📍 Konum: **{detected_district or detected_city}**")
+    # Bot Cevap Metni
+    reply_lines = [f"Senin için kriterlerine tam uyan **{len(top_matches)} tescilli {item_type_label.lower()}** buldum:"]
+    if is_budget_friendly:
+        reply_lines.append("🏷️ *En uygun fiyatlı seçeneklerden sıralandı.*")
     if detected_max_price:
-        reply_parts.append(f"💰 Bütçe Sınırı: **{detected_max_price:,.0f} TL**".replace(',', '.'))
-    if feature_words:
-        reply_parts.append(f"✨ Kriterler: **{', '.join(feature_words)}**")
+        reply_lines.append(f"💰 Bütçe: **{detected_max_price:,.0f} TL altı**".replace(',', '.'))
+    if detected_city or detected_district:
+        reply_lines.append(f"📍 Konum: **{detected_district or detected_city}**")
 
-    reply_text = "\n".join(reply_parts)
+    reply_text = "\n".join(reply_lines)
 
     listings_data = []
     favorite_ids = _get_user_favorites(request)
