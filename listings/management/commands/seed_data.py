@@ -2,10 +2,10 @@ from django.core.management.base import BaseCommand
 from listings.models import Category, Listing
 
 class Command(BaseCommand):
-    help = "Sahibinden formatında zengin, tescilli ve her kategoride çoklu test ilanları ekler."
+    help = "Sahibinden formatında zengin, tescilli ve her ilana özel doğrudan Sahibinden linkleri ekler."
 
     def handle(self, *args, **kwargs):
-        self.stdout.write(self.style.WARNING("Kategoriler ve tescilli ilanlar güncelleniyor..."))
+        self.stdout.write(self.style.WARNING("Kategoriler ve her ilana özel Sahibinden linkleri güncelleniyor..."))
 
         cat_emlak, _ = Category.objects.get_or_create(
             slug="emlak",
@@ -21,7 +21,7 @@ class Command(BaseCommand):
         )
 
         sample_listings = [
-            # 📱 TELEFON İLANLARI (Cep Telefonu & Aksesuar)
+            # 📱 TELEFON İLANLARI
             {
                 "category": cat_teknoloji,
                 "title": "Apple iPhone 14 Pro 128GB Derin Mor Pil %89 Hatasız",
@@ -31,7 +31,7 @@ class Command(BaseCommand):
                 "district": "Çankaya",
                 "neighborhood": "Bahçelievler",
                 "image_url": "https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/cep-telefonu-modelleri-apple-iphone-14-pro",
                 "specs": {"Ürün Türü": "Cep Telefonu", "Marka": "Apple", "Model": "iPhone 14 Pro", "Hafıza": "128 GB", "Pil": "%89", "Kayıt": "BTK Türkiye Kayıtlı"},
                 "is_verified": True,
                 "verification_score": 99,
@@ -47,7 +47,7 @@ class Command(BaseCommand):
                 "district": "Kadıköy",
                 "neighborhood": "Moda",
                 "image_url": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/cep-telefonu-modelleri-apple-iphone-13",
                 "specs": {"Ürün Türü": "Cep Telefonu", "Marka": "Apple", "Model": "iPhone 13", "Hafıza": "128 GB", "Pil": "%86"},
                 "is_verified": True,
                 "verification_score": 97,
@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 "district": "Karşıyaka",
                 "neighborhood": "Bostanlı",
                 "image_url": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/cep-telefonu-modelleri-samsung-galaxy-s23",
                 "specs": {"Ürün Türü": "Cep Telefonu", "Marka": "Samsung", "Model": "Galaxy S23", "Hafıza": "256 GB", "RAM": "8 GB"},
                 "is_verified": True,
                 "verification_score": 98,
@@ -79,7 +79,7 @@ class Command(BaseCommand):
                 "district": "Beşiktaş",
                 "neighborhood": "Çarşı",
                 "image_url": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/cep-telefonu-modelleri-xiaomi-redmi-note-12-pro",
                 "specs": {"Ürün Türü": "Cep Telefonu", "Marka": "Xiaomi", "Model": "Redmi Note 12 Pro", "Hafıza": "256 GB", "Fiyat": "Ekonomik"},
                 "is_verified": True,
                 "verification_score": 95,
@@ -97,7 +97,7 @@ class Command(BaseCommand):
                 "district": "Kadıköy",
                 "neighborhood": "Caddebostan",
                 "image_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/dizustu-laptop-modelleri-apple-macbook-air-m2",
                 "specs": {"Ürün Türü": "Dizüstü Bilgisayar (Laptop)", "Marka": "Apple", "Model": "MacBook Air M2", "RAM": "16 GB", "SSD": "512 GB"},
                 "is_verified": True,
                 "verification_score": 99,
@@ -113,7 +113,7 @@ class Command(BaseCommand):
                 "district": "Beşiktaş",
                 "neighborhood": "Levent",
                 "image_url": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/dizustu-laptop-modelleri-lenovo-legion-5",
                 "specs": {"Ürün Türü": "Dizüstü Bilgisayar (Laptop)", "Marka": "Lenovo", "Ekran Kartı": "RTX 3060", "RAM": "16 GB"},
                 "is_verified": True,
                 "verification_score": 96,
@@ -131,7 +131,7 @@ class Command(BaseCommand):
                 "district": "Kadıköy",
                 "neighborhood": "Moda",
                 "image_url": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/kiralik-daire/istanbul-kadikoy-moda",
                 "specs": {"Ürün Türü": "Kiralık Daire", "Oda Sayısı": "2+1", "m² (Net)": 95, "Balkon": True, "Isıtma": "Kombi"},
                 "is_verified": True,
                 "verification_score": 98,
@@ -147,7 +147,7 @@ class Command(BaseCommand):
                 "district": "Beşiktaş",
                 "neighborhood": "Sinanpaşa",
                 "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/kiralik-daire/istanbul-besiktas-sinanpasa",
                 "specs": {"Ürün Türü": "Kiralık Daire", "Oda Sayısı": "1+1", "m² (Net)": 55, "Eşyalı": True},
                 "is_verified": True,
                 "verification_score": 96,
@@ -163,7 +163,7 @@ class Command(BaseCommand):
                 "district": "Çankaya",
                 "neighborhood": "Kavaklıdere",
                 "image_url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/kiralik-daire/ankara-cankaya-kavaklidere",
                 "specs": {"Ürün Türü": "Kiralık Daire", "Oda Sayısı": "2+1", "m² (Net)": 85, "Balkon": True},
                 "is_verified": True,
                 "verification_score": 97,
@@ -181,7 +181,7 @@ class Command(BaseCommand):
                 "district": "Kadıköy",
                 "neighborhood": "Kozyatağı",
                 "image_url": "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/renault-clio-1.0-tce",
                 "specs": {"Ürün Türü": "Otomobil", "Marka": "Renault", "Model": "Clio", "Yıl": 2021, "KM": "42.000", "Vites": "Otomatik", "Yakıt": "Benzin"},
                 "is_verified": True,
                 "verification_score": 99,
@@ -197,7 +197,7 @@ class Command(BaseCommand):
                 "district": "Çankaya",
                 "neighborhood": "Kızılay",
                 "image_url": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/volkswagen-polo-1.0-tsi",
                 "specs": {"Ürün Türü": "Otomobil", "Marka": "Volkswagen", "Model": "Polo", "Yıl": 2020, "KM": "56.000", "Vites": "Otomatik"},
                 "is_verified": True,
                 "verification_score": 98,
@@ -213,7 +213,7 @@ class Command(BaseCommand):
                 "district": "Bornova",
                 "neighborhood": "Evka 3",
                 "image_url": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80",
-                "source_url": "https://www.sahibinden.com",
+                "source_url": "https://www.sahibinden.com/fiat-egea-1.3-multijet",
                 "specs": {"Ürün Türü": "Otomobil", "Marka": "Fiat", "Model": "Egea", "Yıl": 2022, "KM": "68.000", "Vites": "Manuel", "Yakıt": "Dizel"},
                 "is_verified": True,
                 "verification_score": 94,
@@ -228,4 +228,4 @@ class Command(BaseCommand):
                 defaults=item
             )
 
-        self.stdout.write(self.style.SUCCESS(f"Tebrikler! {len(sample_listings)} tescilli ilan kategorize edilerek yüklendi."))
+        self.stdout.write(self.style.SUCCESS(f"Tebrikler! {len(sample_listings)} ilan doğrudan Sahibinden adresleriyle güncellendi."))
