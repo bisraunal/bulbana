@@ -1,162 +1,126 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Bana Özel Önerilen İlanlar — BulBana{% endblock %}
+{% block title %}Bana Özel Önerilen İlanlar — buldan.com{% endblock %}
 
 {% block content %}
 <div class="container py-4">
 
   {% if not active_pref %}
-    <!-- Profil Bulunamadı / Henüz Kriter Girilmedi -->
-    <div class="card border-0 shadow-lg rounded-4 p-5 text-center my-5 bg-white">
-      <div class="mb-3 text-warning">
-        <i class="bi bi-stars display-1"></i>
-      </div>
-      <h3 class="fw-extrabold text-dark mb-2">Henüz Bir Arayış Profili Oluşturmadın!</h3>
+    <!-- Profil Bulunamadı -->
+    <div class="bg-white border rounded-2 p-5 text-center my-4 shadow-sm">
+      <i class="bi bi-robot display-3 text-warning mb-3 d-block"></i>
+      <h4 class="fw-bold text-dark mb-2">Henüz Bir Arayış Profili Tanımlamadın</h4>
       <p class="text-muted max-w-md mx-auto mb-4">
-        Sahibinden ilanlarını senin kriterlerine göre puanlayabilmemiz için önce ne aradığını (bütçe, şehir, özellikler) bize söylemelisin.
+        İster sağ alttaki <strong>AI Asistan</strong> ile doğrudan sohbet et, ister kriter sihirbazını doldur.
       </p>
-      <div>
-        <a href="{% url 'create_preference' %}" class="btn btn-wizard-cta px-4 py-3 fs-6">
-          <i class="bi bi-magic me-2"></i> Şimdi Arayış Sihirbazını Başlat
+      <div class="d-flex justify-content-center gap-2">
+        <button class="btn btn-warning fw-bold px-4 py-2 text-dark rounded-1" onclick="document.getElementById('chatbotToggleBtn').click();">
+          <i class="bi bi-chat-dots-fill me-1"></i> Asistan ile Konuş
+        </button>
+        <a href="{% url 'create_preference' %}" class="btn btn-outline-dark fw-bold px-4 py-2 rounded-1">
+          <i class="bi bi-sliders me-1"></i> Sihirbaza Git
         </a>
       </div>
     </div>
   {% else %}
 
-    <!-- Aktif Profil Başlığı & Profil Değiştirici -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
-      <div class="row align-items-center g-3">
-        <div class="col-lg-8">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="badge bg-primary px-3 py-1 rounded-pill">
-              <i class="bi bi-tag-fill text-warning me-1"></i> {{ active_pref.category.name }}
+    <!-- Aktif Profil Başlığı -->
+    <div class="bg-white border rounded-2 p-3 mb-4 shadow-sm">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge bg-dark">
+              <i class="bi bi-tag-fill text-warning me-1"></i> {{ active_pref.category.name|default:"Tüm Kategoriler" }}
             </span>
-            <span class="badge bg-light text-secondary border rounded-pill">
-              {{ active_pref.get_priority_display }}
-            </span>
+            <span class="badge bg-light text-dark border">{{ active_pref.get_priority_display }}</span>
           </div>
-          <h3 class="fw-extrabold text-dark mb-1 d-flex align-items-center gap-2">
-            {{ active_pref.title }}
-          </h3>
-          <div class="text-muted small d-flex flex-wrap gap-3 mt-2">
-            {% if active_pref.min_price or active_pref.max_price %}
-              <span><i class="bi bi-wallet2 text-success me-1"></i> Bütçe: <strong>{% if active_pref.min_price %}{{ active_pref.min_price|floatformat:0 }} TL{% else %}0 TL{% endif %} - {% if active_pref.max_price %}{{ active_pref.max_price|floatformat:0 }} TL{% else %}&infin;{% endif %}</strong></span>
+          <h4 class="fw-bold text-dark mb-1">{{ active_pref.title }}</h4>
+          <div class="small text-muted d-flex flex-wrap gap-3">
+            {% if active_pref.max_price %}
+              <span><i class="bi bi-wallet2 text-success me-1"></i> Maks. Bütçe: <strong>{{ active_pref.max_price|floatformat:0 }} TL</strong></span>
             {% endif %}
             {% if active_pref.target_city %}
-              <span><i class="bi bi-geo-alt-fill text-danger me-1"></i> Konum: <strong>{{ active_pref.target_city }}{% if active_pref.target_district %} / {{ active_pref.target_district }}{% endif %}</strong></span>
+              <span><i class="bi bi-geo-alt-fill text-danger me-1"></i> Hedef: <strong>{{ active_pref.target_city }}{% if active_pref.target_district %} / {{ active_pref.target_district }}{% endif %}</strong></span>
             {% endif %}
             {% if active_pref.keywords %}
-              <span><i class="bi bi-check2-circle text-primary me-1"></i> Kriterler: <strong>{{ active_pref.keywords }}</strong></span>
+              <span><i class="bi bi-check2-circle text-primary me-1"></i> İstenen: <strong>{{ active_pref.keywords }}</strong></span>
             {% endif %}
           </div>
         </div>
 
-        <div class="col-lg-4 text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
-          <!-- Çoklu Profil Varsa Seçim Dropdown'ı -->
+        <div class="d-flex gap-2">
           {% if user_preferences.count > 1 %}
             <div class="dropdown">
-              <button class="btn btn-outline-secondary dropdown-toggle rounded-pill px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-arrow-left-right me-1"></i> Arayış Değiştir
+              <button class="btn btn-outline-secondary btn-sm dropdown-toggle rounded-1 fw-bold" type="button" data-bs-toggle="dropdown">
+                Arayış Değiştir
               </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3">
+              <ul class="dropdown-menu dropdown-menu-end small">
                 {% for pref in user_preferences %}
-                  <li>
-                    <a class="dropdown-item py-2 {% if pref.id == active_pref.id %}active fw-bold{% endif %}" href="?pref_id={{ pref.id }}">
-                      {{ pref.title }} <small class="text-muted">({{ pref.category.name }})</small>
-                    </a>
-                  </li>
+                  <li><a class="dropdown-item {% if pref.id == active_pref.id %}active fw-bold{% endif %}" href="?pref_id={{ pref.id }}">{{ pref.title }}</a></li>
                 {% endfor %}
               </ul>
             </div>
           {% endif %}
-
-          <a href="{% url 'create_preference' %}" class="btn btn-wizard-cta px-3 py-2">
-            <i class="bi bi-plus-circle me-1"></i> Yeni Arayış Ekle
+          <a href="{% url 'create_preference' %}" class="btn btn-warning btn-sm fw-bold text-dark rounded-1">
+            <i class="bi bi-plus-circle me-1"></i> Yeni Kriter Ekle
           </a>
         </div>
       </div>
     </div>
 
-    <!-- Önerilen İlanlar Sonuç Listesi -->
+    <!-- Sonuç Başlığı -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold text-dark mb-0">
-        <i class="bi bi-stars text-warning me-1"></i> Senin İçin Eşleştirilen {{ result_count }} İlan
-      </h5>
-      <span class="text-muted small">En yüksek uyum skoruna göre sıralandı</span>
+      <h6 class="fw-bold text-dark mb-0">
+        <i class="bi bi-stars text-warning me-1"></i> Kriterlerinize Uyan {{ result_count }} İlan
+      </h6>
+      <span class="small text-muted">En yüksek uyum puanına göre listelendi</span>
     </div>
 
-    <div class="row g-4">
+    <!-- Sonuç Kartları (Grid) -->
+    <div class="row g-3">
       {% for result in matched_results %}
         {% with item=result.listing score=result.match_score reasons=result.positive_reasons notes=result.notes %}
-          <div class="col-lg-4 col-md-6">
-            <div class="listing-card">
-              <div class="listing-img-wrapper">
-                <span class="category-badge">{{ item.category.name }}</span>
-                <button class="btn-favorite-icon {% if item.id in favorite_ids %}active{% endif %}" data-listing-id="{{ item.id }}" title="Favorilere Ekle">
+          <div class="col-lg-4 col-sm-6">
+            <div class="sh-card">
+              <div class="sh-card-img-wrap">
+                <button class="btn-fav-icon {% if item.id in favorite_ids %}active{% endif %}" data-listing-id="{{ item.id }}">
                   <i class="bi {% if item.id in favorite_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
                 </button>
-                {% if item.image_url %}
-                  <img src="{{ item.image_url }}" alt="{{ item.title }}" class="listing-img">
-                {% else %}
-                  <div class="d-flex align-items-center justify-content-center h-100 bg-secondary-subtle text-secondary">
-                    <i class="bi bi-image fs-1"></i>
-                  </div>
-                {% endif %}
+                <img src="{{ item.image_url }}" alt="{{ item.title }}" class="sh-card-img">
               </div>
 
-              <div class="listing-body">
-                <!-- Uyum Skoru Rozeti -->
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  {% if score >= 80 %}
-                    <span class="match-score-badge match-high">
-                      <i class="bi bi-check-circle-fill"></i> %{{ score }} Uyumlu
-                    </span>
-                  {% elif score >= 50 %}
-                    <span class="match-score-badge match-medium">
-                      <i class="bi bi-lightning-fill"></i> %{{ score }} Kısmi Uyumlu
-                    </span>
-                  {% else %}
-                    <span class="match-score-badge match-low">
-                      <i class="bi bi-exclamation-circle-fill"></i> %{{ score }} Düşük Uyum
-                    </span>
-                  {% endif %}
-                  <span class="fw-bold text-primary fs-5">{{ item.formatted_price }}</span>
+              <div class="p-3 d-flex flex-column flex-grow-1">
+                <!-- Uyum Skoru & Fiyat -->
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="badge {% if score >= 80 %}bg-success{% elif score >= 50 %}bg-warning text-dark{% else %}bg-secondary{% endif %} fw-bold">
+                    <i class="bi bi-stars"></i> %{{ score }} Uyumlu
+                  </span>
+                  <span class="fw-bold fs-5 text-dark">{{ item.formatted_price }}</span>
                 </div>
 
-                <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none">
-                  <h6 class="listing-title">{{ item.title }}</h6>
+                <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none text-dark">
+                  <div class="fw-bold small mb-1 text-truncate" title="{{ item.title }}">{{ item.title }}</div>
                 </a>
 
-                <div class="listing-location">
-                  <i class="bi bi-geo-alt-fill text-danger"></i>
-                  <span>{{ item.district }}, {{ item.city }} {% if item.neighborhood %}({{ item.neighborhood }}){% endif %}</span>
+                <div class="text-muted small mb-2">{{ item.district }}, {{ item.city }}</div>
+
+                <!-- Neden Uygun? -->
+                <div class="bg-light p-2 rounded-1 border small mb-2">
+                  {% for r in reasons %}
+                    <div class="text-success small fw-semibold"><i class="bi bi-check2"></i> {{ r }}</div>
+                  {% endfor %}
+                  {% for n in notes %}
+                    <div class="text-muted small"><i class="bi bi-info-circle"></i> {{ n }}</div>
+                  {% endfor %}
                 </div>
 
-                <!-- Neden Senin İçin Uygun? Açıklama Kutusu -->
-                {% if reasons or notes %}
-                  <div class="match-reasons-box">
-                    {% for r in reasons %}
-                      <div class="match-reason-item text-dark">{{ r }}</div>
-                    {% endfor %}
-                    {% for n in notes %}
-                      <div class="match-reason-item text-secondary small">{{ n }}</div>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-
-                <!-- Özellikler -->
-                {% if item.specs %}
-                  <div class="specs-pills">
-                    {% for key, val in item.specs.items %}
-                      <span class="spec-pill">{{ key|title }}: {{ val }}</span>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-
-                <div class="d-grid mt-3">
-                  <a href="{% url 'listing_detail' item.id %}" class="btn btn-outline-dark btn-sm rounded-pill fw-bold">
-                    İlanı İncele &rarr;
+                <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                  {% if item.is_verified %}
+                    <span class="sh-badge-verified">🛡️ %{{ item.verification_score }} Tescilli</span>
+                  {% endif %}
+                  <a href="{% url 'listing_detail' item.id %}" class="btn btn-outline-dark btn-sm rounded-1 fw-bold">
+                    İncele &rarr;
                   </a>
                 </div>
               </div>
@@ -164,9 +128,8 @@
           </div>
         {% endwith %}
       {% empty %}
-        <div class="col-12 text-center py-5">
-          <p class="text-muted fs-5">Bu arayış kriterlerine uygun aktif ilan bulunamadı.</p>
-          <a href="{% url 'create_preference' %}" class="btn btn-outline-dark rounded-pill px-4">Kriterleri Genişlet</a>
+        <div class="col-12 text-center py-5 bg-white border rounded-2">
+          <p class="text-muted">Bu arayışa uygun ilan bulunamadı.</p>
         </div>
       {% endfor %}
     </div>

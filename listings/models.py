@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -5,7 +6,7 @@ from django.db.models import Q
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Kategori Adı")
     slug = models.SlugField(max_length=100, unique=True, verbose_name="Slug")
-    icon = models.CharField(max_length=50, default="bi-tag", verbose_name="İkon (Bootstrap/Heroicon)")
+    icon = models.CharField(max_length=50, default="bi-tag", verbose_name="İkon")
     description = models.TextField(blank=True, verbose_name="Açıklama")
 
     class Meta:
@@ -26,11 +27,23 @@ class Listing(models.Model):
     district = models.CharField(max_length=100, verbose_name="İlçe")
     neighborhood = models.CharField(max_length=100, blank=True, verbose_name="Mahalle / Semt")
     image_url = models.URLField(max_length=500, blank=True, verbose_name="İlan Görseli URL")
-    source_url = models.URLField(max_length=500, blank=True, verbose_name="Sahibinden / Kaynak İlan Linki")
+    source_url = models.URLField(max_length=500, blank=True, verbose_name="Sahibinden İlan Linki")
     
-    # Esnek özellikler: {"oda_sayisi": "2+1", "balkon": True, "vites": "Otomatik", "yakit": "Benzin", "ram": "16GB"}
-    specs = models.JSONField(default=dict, blank=True, verbose_name="Teknik Özellikler / Parametreler")
+    # Teknik Özellikler
+    specs = models.JSONField(default=dict, blank=True, verbose_name="Teknik Parametreler")
     
+    # 🛡️ DOĞRULUK VE TESCİL SİSTEMİ
+    is_verified = models.BooleanField(default=True, verbose_name="Tescilli / Doğrulanmış İlan mı?")
+    verification_score = models.PositiveSmallIntegerField(default=95, verbose_name="Doğruluk & Güven Puanı (%0-100)")
+    verification_badges = models.JSONField(
+        default=list, blank=True, 
+        verbose_name="Tescil Rozetleri (Örn: Tapu Doğrulandı, Ekspertiz Onaylı, Piyasa Fiyatı Test Edildi)"
+    )
+    market_price_diff = models.CharField(
+        max_length=100, blank=True, default="Piyasa Fiyatında", 
+        verbose_name="Piyasa Fiyat Kıyaslaması (Örn: Piyasanın %10 Altında)"
+    )
+
     is_active = models.BooleanField(default=True, verbose_name="Aktif mi?")
     view_count = models.PositiveIntegerField(default=0, verbose_name="Görüntülenme Sayısı")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
@@ -54,27 +67,24 @@ class UserPreference(models.Model):
         ('balanced', 'Dengeli (Fiyat + Konum + Özellikler)'),
         ('price', 'Öncelik: Uygun Fiyat & Bütçe'),
         ('location', 'Öncelik: Konum & Lokasyon'),
-        ('specs', 'Öncelik: Donanım & Özel Nitelikler'),
+        ('specs', 'Öncelik: Donanım & Nitelikler'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="preferences", verbose_name="Kullanıcı")
     session_key = models.CharField(max_length=100, null=True, blank=True, verbose_name="Misafir Oturumu")
     
-    title = models.CharField(max_length=150, verbose_name="Arayış Başlığı (Örn: Kadıköy 2+1 Ev)")
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="user_preferences", verbose_name="Aranan Kategori")
+    title = models.CharField(max_length=150, verbose_name="Arayış Başlığı")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name="user_preferences", verbose_name="Aranan Kategori")
     
-    min_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Minimum Bütçe (TL)")
-    max_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Maksimum Bütçe (TL)")
+    min_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Min Bütçe")
+    max_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Max Bütçe")
     
     target_city = models.CharField(max_length=100, blank=True, verbose_name="Hedef İl")
     target_district = models.CharField(max_length=100, blank=True, verbose_name="Hedef İlçe")
     
-    # Aranılan anahtar kelimeler / etiketler (virgülle ayrılmış: "balkon, metro, kedi, temiz")
-    keywords = models.CharField(max_length=255, blank=True, verbose_name="Önemli Anahtar Kelimeler (virgülle)")
-    
-    # Tercih edilen ek özellikler
-    preferred_specs = models.JSONField(default=dict, blank=True, verbose_name="Tercih Edilen Parametreler")
-    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='balanced', verbose_name="Öncelik Durumu")
+    keywords = models.CharField(max_length=255, blank=True, verbose_name="Anahtar Kelimeler")
+    preferred_specs = models.JSONField(default=dict, blank=True, verbose_name="Parametreler")
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='balanced', verbose_name="Öncelik")
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Güncellenme Tarihi")
@@ -84,96 +94,106 @@ class UserPreference(models.Model):
         verbose_name_plural = "Kullanıcı Arayış Profilleri"
         ordering = ['-created_at']
 
-    def __str__(self):
-        owner = f"@{self.user.username}" if self.user else f"Misafir ({self.session_key[:8]}...)"
-        return f"{owner} -> {self.title} ({self.category.name})"
-
     def calculate_match(self, listing):
         """
-        Kullanıcı arayış kriterleri ile verilen ilanı karşılaştırır.
-        Dönüş: (match_score: int 0-100, positive_reasons: list, notes: list)
+        Gelişmiş, esnek ve Türkçe karakter toleranslı eşleştirme algoritması.
         """
-        # Kategori uyumsuzsa direkt 0 puan
-        if self.category_id != listing.category_id:
-            return 0, [], ["Kategori uyuşmuyor"]
+        def normalize_tr(text):
+            if not text:
+                return ""
+            t = str(text).lower()
+            replacements = {'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c', 'İ': 'i'}
+            for k, v in replacements.items():
+                t = t.replace(k, v)
+            return t
 
-        score = 100
+        score = 80
         positive_reasons = []
         notes = []
 
-        # 1. Fiyat Değerlendirmesi (Ağırlık: %40)
+        # Kategori kontrolü (Opsiyonel esneklik)
+        if self.category and self.category_id != listing.category_id:
+            score -= 30
+            notes.append("Farklı kategori")
+        elif self.category:
+            positive_reasons.append(f"📁 Doğru kategori: {listing.category.name}")
+
+        # 1. Fiyat Değerlendirmesi
         listing_price = float(listing.price)
         max_p = float(self.max_price) if self.max_price else None
         min_p = float(self.min_price) if self.min_price else None
 
         if max_p and min_p:
             if min_p <= listing_price <= max_p:
-                positive_reasons.append(f"🎯 Tam bütçenize uygun ({listing.formatted_price})")
+                score += 15
+                positive_reasons.append(f"💰 Tam bütçenize uygun ({listing.formatted_price})")
             elif listing_price < min_p:
-                positive_reasons.append(f"💰 Bütçenizin altında cazip fiyat")
+                positive_reasons.append(f"🏷️ Bütçenizin altında hesaplı fiyat")
             else:
                 diff_pct = ((listing_price - max_p) / max_p) * 100
-                penalty = min(35, int(diff_pct * 1.2))
-                score -= penalty
+                score -= min(40, int(diff_pct * 0.8))
                 notes.append(f"⚠️ Bütçenizi %{int(diff_pct)} aşıyor")
         elif max_p:
             if listing_price <= max_p:
-                positive_reasons.append(f"🎯 Bütçe sınırınızın altında ({listing.formatted_price})")
+                score += 15
+                positive_reasons.append(f"💰 Bütçenizin altında ({listing.formatted_price})")
             else:
                 diff_pct = ((listing_price - max_p) / max_p) * 100
-                penalty = min(35, int(diff_pct * 1.2))
-                score -= penalty
+                score -= min(40, int(diff_pct * 0.8))
                 notes.append(f"⚠️ Bütçenizi %{int(diff_pct)} aşıyor")
 
-        # 2. Lokasyon Değerlendirmesi (Ağırlık: %30)
-        if self.target_city:
-            if self.target_city.lower() == listing.city.lower():
-                if self.target_district:
-                    if self.target_district.lower() == listing.district.lower():
-                        positive_reasons.append(f"📍 Hedef konumunuzda ({listing.district}, {listing.city})")
-                    else:
-                        score -= 15
-                        notes.append(f"Farklı ilçe ({listing.district})")
+        # 2. Lokasyon Değerlendirmesi
+        target_city_norm = normalize_tr(self.target_city)
+        target_dist_norm = normalize_tr(self.target_district)
+        listing_city_norm = normalize_tr(listing.city)
+        listing_dist_norm = normalize_tr(listing.district)
+
+        if target_city_norm:
+            if target_city_norm in listing_city_norm or listing_city_norm in target_city_norm:
+                if target_dist_norm and (target_dist_norm in listing_dist_norm or listing_dist_norm in target_dist_norm):
+                    score += 15
+                    positive_reasons.append(f"📍 Birebir hedef konumunuzda ({listing.district}, {listing.city})")
                 else:
+                    score += 8
                     positive_reasons.append(f"📍 Aradığınız şehirde ({listing.city})")
             else:
-                score -= 30
+                score -= 20
                 notes.append(f"Farklı şehir ({listing.city})")
 
-        # 3. Anahtar Kelimeler & Açıklama Taraması (Ağırlık: %20)
+        # 3. Anahtar Kelimeler & Açıklama / Donanım Taraması
         if self.keywords:
-            kw_list = [k.strip().lower() for k in self.keywords.split(",") if k.strip()]
-            full_text = f"{listing.title} {listing.description} {' '.join(str(v) for v in listing.specs.values())}".lower()
+            raw_kws = [k.strip() for k in re.split(r'[,; ]+', self.keywords) if k.strip()]
+            full_text_norm = normalize_tr(f"{listing.title} {listing.description} {' '.join(str(v) for v in listing.specs.values())}")
             
-            matched_kws = [kw for kw in kw_list if kw in full_text]
-            if matched_kws:
-                positive_reasons.append(f"✨ Aradığınız kriterler mevcut: {', '.join(matched_kws)}")
-                score += min(10, len(matched_kws) * 4)
-            elif kw_list:
-                score -= 10
+            matched = []
+            for kw in raw_kws:
+                kw_norm = normalize_tr(kw)
+                if len(kw_norm) >= 2 and kw_norm in full_text_norm:
+                    matched.append(kw)
 
-        # 4. Öncelik Ayarlaması
-        if self.priority == 'price' and positive_reasons and any("bütçe" in r.lower() or "fiyat" in r.lower() for r in positive_reasons):
-            score += 5
-        elif self.priority == 'location' and positive_reasons and any("konum" in r.lower() for r in positive_reasons):
-            score += 5
+            if matched:
+                score += min(20, len(matched) * 8)
+                positive_reasons.append(f"✨ Kriterler bulundu: {', '.join(matched)}")
 
-        # Skor sınırlandırma (0 - 100 arası)
-        final_score = max(5, min(100, int(score)))
+        # 4. Tescil ve Güvenilirlik Bonusu
+        if listing.is_verified:
+            positive_reasons.append(f"🛡️ %{listing.verification_score} Doğrulanmış & Tescilli İlan")
+
+        final_score = max(10, min(100, int(score)))
         return final_score, positive_reasons, notes
 
 
 class ListingInteraction(models.Model):
     ACTION_CHOICES = [
         ('favorite', 'Favoriye Eklendi'),
-        ('dismiss', 'İlgilenmiyorum / Gizle'),
+        ('dismiss', 'İlgilenmiyorum'),
         ('clicked', 'İlana Göz Atıldı'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="listing_interactions", verbose_name="Kullanıcı")
     session_key = models.CharField(max_length=100, null=True, blank=True, verbose_name="Misafir Oturumu")
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="interactions", verbose_name="İlan")
-    action_type = models.CharField(max_length=20, choices=ACTION_CHOICES, verbose_name="Etkileşim Türü")
+    action_type = models.CharField(max_length=20, choices=ACTION_CHOICES, verbose_name="Etkileşim")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Tarih")
 
     class Meta:
@@ -191,7 +211,3 @@ class ListingInteraction(models.Model):
                 name='unique_session_listing_action'
             ),
         ]
-
-    def __str__(self):
-        owner = f"@{self.user.username}" if self.user else f"Misafir ({self.session_key[:8]}...)"
-        return f"{owner} - {self.get_action_type_display()} -> {self.listing.title}"

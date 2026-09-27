@@ -1,124 +1,202 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Tüm Sahibinden İlanları — BulBana{% endblock %}
+{% block title %}İlanlar — buldan.com{% endblock %}
 
 {% block content %}
 <div class="container py-4">
 
-  <!-- Header & Arama -->
-  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
-    <form method="get" class="row g-3 align-items-end">
+  <!-- Arama & Filtreleme Üst Barı -->
+  <div class="bg-white border rounded-2 p-3 mb-3 shadow-sm">
+    <form method="get" class="row g-2 align-items-center">
+      {% if selected_category %}
+        <input type="hidden" name="category" value="{{ selected_category.slug }}">
+      {% endif %}
+
       <div class="col-lg-4 col-md-6">
-        <label class="form-label fw-bold small text-muted">Arama Kelimesi</label>
-        {{ form.q }}
+        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control form-control-sm rounded-1" placeholder="Kelime ile ara (örn: balkon, otomatik, m2)...">
       </div>
-      <div class="col-lg-3 col-md-6">
-        <label class="form-label fw-bold small text-muted">Kategori</label>
-        {{ form.category }}
+      <div class="col-lg-2 col-md-3">
+        <input type="text" name="city" value="{{ request.GET.city }}" class="form-control form-control-sm rounded-1" placeholder="Şehir (örn: İstanbul)">
       </div>
-      <div class="col-lg-2 col-md-6">
-        <label class="form-label fw-bold small text-muted">Şehir</label>
-        {{ form.city }}
+      <div class="col-lg-2 col-md-3">
+        <input type="number" name="max_price" value="{{ request.GET.max_price }}" class="form-control form-control-sm rounded-1" placeholder="Maks. Fiyat (TL)">
       </div>
       <div class="col-lg-2 col-md-6">
-        <label class="form-label fw-bold small text-muted">Maks. Fiyat (TL)</label>
-        {{ form.max_price }}
+        <div class="form-check small mt-1">
+          <input class="form-check-input" type="checkbox" name="verified" value="1" id="verifiedOnly" {% if verified_only %}checked{% endif %}>
+          <label class="form-check-label fw-bold text-success" for="verifiedOnly">
+            🛡️ Sadece Tescilliler
+          </label>
+        </div>
       </div>
-      <div class="col-lg-1 col-md-12 d-grid">
-        <button type="submit" class="btn btn-dark fw-bold py-2 rounded-3">
-          <i class="bi bi-search"></i>
+      <div class="col-lg-2 col-md-6 text-end">
+        <button type="submit" class="btn btn-warning btn-sm fw-bold w-100 rounded-1">
+          <i class="bi bi-search me-1"></i> Filtrele
         </button>
       </div>
     </form>
   </div>
 
-  <!-- Kategori Filtre Hapları -->
-  <div class="d-flex flex-wrap gap-2 mb-4">
-    <a href="{% url 'listing_list' %}" class="btn btn-sm rounded-pill {% if not selected_category %}btn-dark fw-bold{% else %}btn-outline-secondary{% endif %}">
-      Tümü ({{ total_count }})
-    </a>
-    {% for cat in categories %}
-      <a href="?category={{ cat.slug }}" class="btn btn-sm rounded-pill {% if selected_category.slug == cat.slug %}btn-dark fw-bold{% else %}btn-outline-secondary{% endif %}">
-        <i class="bi {{ cat.icon }} me-1"></i> {{ cat.name }}
-      </a>
-    {% endfor %}
-  </div>
+  <div class="row g-4">
+    <!-- Sol Kategori Filtresi -->
+    <div class="col-lg-3 col-md-4">
+      <div class="bg-white border rounded-2 p-3 shadow-sm mb-3">
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2 small text-uppercase">Kategoriler</h6>
+        <ul class="list-unstyled mb-0 d-flex flex-column gap-1 small">
+          <li>
+            <a href="{% url 'listing_list' %}" class="text-decoration-none {% if not selected_category %}fw-bold text-dark{% else %}text-secondary{% endif %}">
+              &bull; Tüm Kategoriler ({{ total_count }})
+            </a>
+          </li>
+          {% for cat in categories %}
+            <li>
+              <a href="?category={{ cat.slug }}" class="text-decoration-none {% if selected_category.slug == cat.slug %}fw-bold text-dark bg-warning-subtle px-2 py-1 rounded-1 d-block{% else %}text-secondary d-block py-1{% endif %}">
+                <i class="bi {{ cat.icon }} me-1"></i> {{ cat.name }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
 
-  <!-- Sonuçlar Başlığı ve Sıralama -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="fw-bold text-dark mb-0">
-      {% if selected_category %}
-        {{ selected_category.name }} İlanları
-      {% else %}
-        Tüm Sahibinden İlanları
-      {% endif %}
-      <span class="badge bg-light text-dark border ms-2">{{ total_count }} İlan</span>
-    </h5>
-
-    <div class="d-flex align-items-center gap-2">
-      <span class="small text-muted d-none d-md-inline">Sıralama:</span>
-      <div class="btn-group btn-group-sm">
-        <a href="?sort=newest{% if selected_category %}&category={{ selected_category.slug }}{% endif %}" class="btn btn-outline-dark {% if current_sort == 'newest' %}active{% endif %}">En Yeni</a>
-        <a href="?sort=price_asc{% if selected_category %}&category={{ selected_category.slug }}{% endif %}" class="btn btn-outline-dark {% if current_sort == 'price_asc' %}active{% endif %}">Fiyat Artan</a>
-        <a href="?sort=price_desc{% if selected_category %}&category={{ selected_category.slug }}{% endif %}" class="btn btn-outline-dark {% if current_sort == 'price_desc' %}active{% endif %}">Fiyat Azalan</a>
+      <!-- AI Asistan Banner -->
+      <div class="bg-warning-subtle border border-warning rounded-2 p-3 text-center shadow-sm">
+        <i class="bi bi-robot fs-3 text-dark d-block mb-1"></i>
+        <h6 class="fw-bold text-dark mb-1">Aramakla Vakit Kaybetme!</h6>
+        <p class="small text-muted mb-2">Yapay zeka asistanımıza istediğin özellikleri söyle, anında bulsun.</p>
+        <button class="btn btn-dark btn-sm fw-bold rounded-1 w-100" onclick="document.getElementById('chatbotToggleBtn').click();">
+          Asistana Sor &rarr;
+        </button>
       </div>
     </div>
-  </div>
 
-  <!-- İlan Kartları Izgarası -->
-  <div class="row g-4">
-    {% for item in listings %}
-      <div class="col-lg-4 col-md-6">
-        <div class="listing-card">
-          <div class="listing-img-wrapper">
-            <span class="category-badge">{{ item.category.name }}</span>
-            <button class="btn-favorite-icon {% if item.id in favorite_ids %}active{% endif %}" data-listing-id="{{ item.id }}" title="Favorilere Ekle">
-              <i class="bi {% if item.id in favorite_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
-            </button>
-            {% if item.image_url %}
-              <img src="{{ item.image_url }}" alt="{{ item.title }}" class="listing-img">
-            {% else %}
-              <div class="d-flex align-items-center justify-content-center h-100 bg-secondary-subtle text-secondary">
-                <i class="bi bi-image fs-1"></i>
-              </div>
-            {% endif %}
+    <!-- Sağ İlan Tablosu / Listesi (Sahibinden Formatı) -->
+    <div class="col-lg-9 col-md-8">
+      
+      <!-- Liste Başlığı & Sıralama -->
+      <div class="d-flex justify-content-between align-items-center mb-2 bg-white border rounded-2 p-2 px-3 shadow-sm">
+        <div class="small fw-bold text-dark">
+          {% if selected_category %}{{ selected_category.name }}{% else %}Tüm İlanlar{% endif %}
+          <span class="text-muted fw-normal">({{ total_count }} İlan bulundu)</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <!-- Görünüm Seçici (Tablo / Grid) -->
+          <div class="btn-group btn-group-sm">
+            <a href="?view=table{% if selected_category %}&category={{ selected_category.slug }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-outline-secondary {% if view_mode == 'table' %}active{% endif %}" title="Tablo Görünümü">
+              <i class="bi bi-list"></i>
+            </a>
+            <a href="?view=grid{% if selected_category %}&category={{ selected_category.slug }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-outline-secondary {% if view_mode == 'grid' %}active{% endif %}" title="Vitrin Görünümü">
+              <i class="bi bi-grid-fill"></i>
+            </a>
           </div>
 
-          <div class="listing-body">
-            <div class="listing-price">{{ item.formatted_price }}</div>
-            <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none">
-              <h6 class="listing-title">{{ item.title }}</h6>
-            </a>
-            <div class="listing-location">
-              <i class="bi bi-geo-alt-fill text-danger"></i>
-              <span>{{ item.district }}, {{ item.city }} {% if item.neighborhood %}({{ item.neighborhood }}){% endif %}</span>
-            </div>
-
-            {% if item.specs %}
-              <div class="specs-pills">
-                {% for key, val in item.specs.items %}
-                  <span class="spec-pill">{{ key|title }}: {{ val }}</span>
-                {% endfor %}
-              </div>
-            {% endif %}
-
-            <div class="d-grid mt-3">
-              <a href="{% url 'listing_detail' item.id %}" class="btn btn-outline-dark btn-sm rounded-pill fw-bold">
-                İlanı İncele &rarr;
-              </a>
-            </div>
+          <!-- Sıralama -->
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-dark dropdown-toggle rounded-1" type="button" data-bs-toggle="dropdown">
+              Sırala: {% if current_sort == 'price_asc' %}Fiyat (Önce En Düşük){% elif current_sort == 'price_desc' %}Fiyat (Önce En Yüksek){% elif current_sort == 'verified' %}Tescil Puanı{% else %}En Yeni{% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end small">
+              <li><a class="dropdown-item" href="?sort=newest{% if selected_category %}&category={{ selected_category.slug }}{% endif %}">Tarihe Göre (En Yeni)</a></li>
+              <li><a class="dropdown-item" href="?sort=price_asc{% if selected_category %}&category={{ selected_category.slug }}{% endif %}">Fiyata Göre (Önce En Düşük)</a></li>
+              <li><a class="dropdown-item" href="?sort=price_desc{% if selected_category %}&category={{ selected_category.slug }}{% endif %}">Fiyata Göre (Önce En Yüksek)</a></li>
+              <li><a class="dropdown-item text-success fw-bold" href="?sort=verified{% if selected_category %}&category={{ selected_category.slug }}{% endif %}">🛡️ Tescil Puanına Göre</a></li>
+            </ul>
           </div>
         </div>
       </div>
-    {% empty %}
-      <div class="col-12 text-center py-5">
-        <i class="bi bi-search display-3 text-muted mb-3 d-block"></i>
-        <h4 class="fw-bold text-dark">Aradığınız kriterlere uygun ilan bulunamadı.</h4>
-        <p class="text-muted">Arama filtrenizi temizleyebilir veya yeni bir arama yapabilirsiniz.</p>
-        <a href="{% url 'listing_list' %}" class="btn btn-dark rounded-pill px-4">Filtreleri Temizle</a>
-      </div>
-    {% endfor %}
+
+      {% if view_mode == 'grid' %}
+        <!-- Grid Görünümü -->
+        <div class="row g-3">
+          {% for item in listings %}
+            <div class="col-lg-4 col-sm-6">
+              <div class="sh-card">
+                <div class="sh-card-img-wrap">
+                  <button class="btn-fav-icon {% if item.id in favorite_ids %}active{% endif %}" data-listing-id="{{ item.id }}">
+                    <i class="bi {% if item.id in favorite_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
+                  </button>
+                  <img src="{{ item.image_url }}" alt="{{ item.title }}" class="sh-card-img">
+                </div>
+                <div class="p-3 d-flex flex-column flex-grow-1">
+                  <div class="sh-card-price mb-1">{{ item.formatted_price }}</div>
+                  <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none text-dark">
+                    <div class="fw-bold small mb-2 text-truncate">{{ item.title }}</div>
+                  </a>
+                  <div class="text-muted small mb-2">{{ item.district }}, {{ item.city }}</div>
+                  <div class="mt-auto pt-2 border-top d-flex gap-1">
+                    {% if item.is_verified %}<span class="sh-badge-verified">🛡️ %{{ item.verification_score }}</span>{% endif %}
+                    {% if item.market_price_diff %}<span class="sh-badge-price-diff">{{ item.market_price_diff }}</span>{% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <!-- Sahibinden Klasik Tablo Görünümü -->
+        <div class="table-responsive bg-white border rounded-2 shadow-sm">
+          <table class="sh-table-view mb-0">
+            <thead>
+              <tr>
+                <th style="width: 100px;">Görsel</th>
+                <th>İlan Başlığı</th>
+                <th style="width: 130px;">Fiyat</th>
+                <th style="width: 130px;">Tarih</th>
+                <th style="width: 140px;">İl / İlçe</th>
+                <th style="width: 50px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in listings %}
+                <tr>
+                  <td>
+                    <a href="{% url 'listing_detail' item.id %}">
+                      <img src="{{ item.image_url }}" alt="{{ item.title }}" class="sh-thumb">
+                    </a>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      {% if item.is_verified %}
+                        <span class="sh-badge-verified"><i class="bi bi-shield-check"></i> %{{ item.verification_score }} Tescilli</span>
+                      {% endif %}
+                      {% if item.market_price_diff %}
+                        <span class="sh-badge-price-diff">{{ item.market_price_diff }}</span>
+                      {% endif %}
+                    </div>
+                    <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none text-dark fw-bold">
+                      {{ item.title }}
+                    </a>
+                  </td>
+                  <td class="fw-bold text-nowrap" style="color: var(--sh-navy); font-size: 1rem;">
+                    {{ item.formatted_price }}
+                  </td>
+                  <td class="small text-muted text-nowrap">
+                    {{ item.created_at|date:"d M Y" }}
+                  </td>
+                  <td class="small text-muted text-nowrap">
+                    <strong>{{ item.city }}</strong><br>{{ item.district }}
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-link text-secondary p-0 btn-fav-icon-table {% if item.id in favorite_ids %}text-danger{% endif %}" data-listing-id="{{ item.id }}">
+                      <i class="bi {% if item.id in favorite_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %} fs-5"></i>
+                    </button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-search display-5 d-block mb-2 text-secondary"></i>
+                    Aradığınız kriterlere uygun ilan bulunamadı.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+
+    </div>
   </div>
 
 </div>

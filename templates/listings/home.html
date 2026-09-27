@@ -1,183 +1,133 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}BulBana — Sahibinden İlanlarını Sana Göre Akıllıca Eşleştirir{% endblock %}
+{% block title %}buldan.com — Sahibinden Akıllı İlan Öneri & Tescil Platformu{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero-section">
-  <div class="container position-relative z-1">
-    <div class="row align-items-center g-5">
-      <div class="col-lg-7">
-        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm">
-          <i class="bi bi-cpu-fill me-1"></i> Akıllı İlan Öneri Motoru
-        </span>
-        <h1 class="hero-title mb-3">
-          Sahibinden İlanları Arasında Kaybolma, <span class="highlight">Bana Göre Olanı Bul!</span>
-        </h1>
-        <p class="hero-subtitle mb-4">
-          Bütçeni, istediğin konumu ve olmazsa olmaz kriterlerini söyle; sistem Sahibinden ilanlarını tarayıp sana en yüksek uyumluluk yüzdesiyle listelesin.
+<div class="container py-4">
+
+  <!-- Üst Tanıtım Banner'ı -->
+  <div class="bg-white border rounded-2 p-4 mb-4 shadow-sm">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-warning text-dark fw-bold px-2 py-1"><i class="bi bi-stars"></i> YENİ ÖZELLİK</span>
+          <span class="sh-badge-verified"><i class="bi bi-shield-check"></i> %100 Doğrulanmış İlan Verisi</span>
+        </div>
+        <h2 class="fw-bold text-dark mb-2">Sahibinden İlanları Arasında Kaybolma!</h2>
+        <p class="text-secondary mb-3">
+          Sağ alttaki <strong>AI Asistan</strong>'a ne aradığını doğrudan yazabilir veya <strong>Arayış Sihirbazı</strong> ile bütçe ve konumunu belirterek en yüksek uyumlu tescilli ilanları tek tıkla bulabilirsin.
         </p>
-        <div class="d-flex flex-wrap gap-3">
-          <a href="{% url 'create_preference' %}" class="btn btn-wizard-cta px-4 py-3 fs-6">
-            <i class="bi bi-stars"></i> Arayış Sihirbazını Başlat
-          </a>
-          <a href="{% url 'listing_list' %}" class="btn btn-outline-light rounded-pill px-4 py-3 fw-bold fs-6">
-            <i class="bi bi-grid-3x3-gap-fill me-1"></i> Tüm İlanları İncele
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-warning fw-bold px-3 py-2 rounded-1 text-dark" onclick="document.getElementById('chatbotToggleBtn').click();">
+            <i class="bi bi-chat-dots-fill me-1"></i> Asistan ile Sohbet Et
+          </button>
+          <a href="{% url 'create_preference' %}" class="btn btn-outline-dark fw-bold px-3 py-2 rounded-1">
+            <i class="bi bi-sliders me-1"></i> Kriter Sihirbazı
           </a>
         </div>
       </div>
-
-      <div class="col-lg-5">
-        <!-- Quick Search Card -->
-        <div class="hero-search-card">
-          <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-            <i class="bi bi-search text-warning"></i> Hızlı İlan Ara
-          </h5>
-          <form action="{% url 'listing_list' %}" method="get">
-            <div class="mb-3">
-              <input type="text" name="q" class="form-control form-control-lg rounded-3" placeholder="Örn: Kadıköy 2+1, Clio, MacBook...">
-            </div>
-            <div class="row g-2 mb-3">
-              <div class="col-6">
-                <select name="category" class="form-select rounded-3">
-                  <option value="">Tüm Kategoriler</option>
-                  {% for cat in categories %}
-                    <option value="{{ cat.slug }}">{{ cat.name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-6">
-                <input type="text" name="city" class="form-control rounded-3" placeholder="Şehir (Örn: İstanbul)">
-              </div>
-            </div>
-            <button type="submit" class="btn btn-dark w-100 py-2 rounded-3 fw-bold">
-              <i class="bi bi-search me-1"></i> İlanları Listele
-            </button>
-          </form>
+      <div class="col-lg-4 text-center">
+        <div class="p-3 bg-light border rounded-2">
+          <div class="text-muted small fw-bold text-uppercase">Tescilli İlan Havuzu</div>
+          <div class="display-6 fw-bold text-dark my-1">{{ total_verified_count }}+ İlan</div>
+          <div class="text-success small fw-semibold"><i class="bi bi-patch-check-fill"></i> Tapu & Ruhsat Kontrollü</div>
         </div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- Categories Section -->
-<section class="py-5">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-end mb-4">
-      <div>
-        <span class="text-warning fw-bold text-uppercase small tracking-wide">Kategoriler</span>
-        <h3 class="fw-extrabold text-dark mb-0">Hangi Alanda Arayıştasın?</h3>
+  <div class="row g-4">
+    <!-- Sol Kategori Menüsü (Sahibinden Stili) -->
+    <div class="col-lg-3 col-md-4">
+      <div class="bg-white border rounded-2 p-3 shadow-sm mb-4">
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Kategoriler</h6>
+        <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+          {% for cat in categories %}
+            <li>
+              <a href="{% url 'listing_list' %}?category={{ cat.slug }}" class="text-decoration-none text-dark d-flex justify-content-between align-items-center py-1">
+                <span><i class="bi {{ cat.icon }} text-warning me-2"></i>{{ cat.name }}</span>
+                <span class="badge bg-light text-muted border">{{ cat.listing_count }}</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
       </div>
-    </div>
 
-    <div class="row g-4">
-      {% for cat in categories %}
-        <div class="col-md-4 col-sm-6">
-          <a href="{% url 'create_preference' %}?category={{ cat.slug }}" class="category-card">
-            <div class="category-icon-circle">
-              <i class="bi {{ cat.icon }}"></i>
-            </div>
-            <h5 class="fw-bold mb-1">{{ cat.name }}</h5>
-            <p class="text-muted small mb-2">{{ cat.description }}</p>
-            <span class="badge bg-light text-secondary rounded-pill px-3 py-1">
-              {{ cat.listing_count }} Aktif İlan &bull; Sihirbaza Başla &rarr;
-            </span>
-          </a>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-<!-- Feature Showcase Section -->
-<section class="py-5 bg-white border-top border-bottom">
-  <div class="container">
-    <div class="row align-items-center g-5">
-      <div class="col-lg-6">
-        <div class="p-4 bg-light rounded-4 border">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <span class="badge match-score-badge match-high">
-              <i class="bi bi-check-circle-fill"></i> %96 Uyumlu
-            </span>
-            <span class="text-muted small">Örnek Eşleştirme</span>
-          </div>
-          <h5 class="fw-bold mb-2">Kadıköy Moda'da Metroya 5 Dk Balkonlu Ferah 2+1</h5>
-          <h4 class="fw-extrabold text-primary mb-3">26.000 TL</h4>
-          <div class="match-reasons-box">
-            <div class="match-reason-item">🎯 <strong>Bütçe:</strong> 30.000 TL sınırınızın 4.000 TL altında.</div>
-            <div class="match-reason-item">📍 <strong>Konum:</strong> Hedeflediğiniz Kadıköy Moda bölgesinde.</div>
-            <div class="match-reason-item">✨ <strong>Özellikler:</strong> Balkonlu ve evcil hayvan kabul ediliyor.</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-1 rounded-pill fw-bold mb-2">Nasıl Çalışır?</span>
-        <h2 class="fw-extrabold mb-3">Tek Tek İlan Aramak Yerine, Bırak Sistem Sana En İyisini Önersin</h2>
-        <p class="text-secondary mb-4">
-          Klasik ilan sitelerinde yüzlerce ilanı tek tek gezip bütçene, konumuna ve istediğin özelliklere uyup uymadığını kontrol etmek zorunda kalırsın. BulBana, senin için her ilana bir <strong>Uyum Puanı (%0-%100)</strong> verir ve neden sana uygun olduğunu açıklar.
+      <div class="bg-white border rounded-2 p-3 shadow-sm">
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-shield-lock-fill text-success me-1"></i> Güvenlik & Tescil</h6>
+        <p class="small text-muted mb-2">
+          BulBana üzerindeki her ilan:
         </p>
-        <a href="{% url 'create_preference' %}" class="btn btn-wizard-cta px-4 py-2">
-          <i class="bi bi-stars"></i> Hemen Kriterlerini Belirle
+        <ul class="small text-secondary ps-3 mb-0">
+          <li>Tapu & Ruhsat sicilinden tescillenir.</li>
+          <li>Piyasa ortalama fiyatı hesaplanır.</li>
+          <li>Kriterlerine uyum yüzdesi verilir.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sağ İlan Vitrini (Sahibinden Stili) -->
+    <div class="col-lg-9 col-md-8">
+      
+      <!-- Vitrin Başlığı -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-dark mb-0">
+          <i class="bi bi-award-fill text-warning me-1"></i> Tescilli & Doğrulanmış Vitrin İlanları
+        </h5>
+        <a href="{% url 'listing_list' %}" class="small text-primary text-decoration-none fw-bold">
+          Tüm İlanları Gör &rarr;
         </a>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- Featured Listings Section -->
-<section class="py-5">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <span class="text-warning fw-bold text-uppercase small">Vitrin</span>
-        <h3 class="fw-extrabold text-dark mb-0">Öne Çıkan Sahibinden İlanları</h3>
-      </div>
-      <a href="{% url 'listing_list' %}" class="btn btn-outline-dark rounded-pill px-3 py-1 fw-bold small">
-        Tümünü Gör ({{ latest_listings|length }}+) &rarr;
-      </a>
-    </div>
-
-    <div class="row g-4">
-      {% for item in latest_listings %}
-        <div class="col-lg-4 col-md-6">
-          <div class="listing-card">
-            <div class="listing-img-wrapper">
-              <span class="category-badge">{{ item.category.name }}</span>
-              <button class="btn-favorite-icon {% if item.id in favorite_ids %}active{% endif %}" data-listing-id="{{ item.id }}" title="Favorilere Ekle">
-                <i class="bi {% if item.id in favorite_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
-              </button>
-              {% if item.image_url %}
-                <img src="{{ item.image_url }}" alt="{{ item.title }}" class="listing-img">
-              {% else %}
-                <div class="d-flex align-items-center justify-content-center h-100 bg-secondary-subtle text-secondary">
-                  <i class="bi bi-image fs-1"></i>
-                </div>
-              {% endif %}
-            </div>
-
-            <div class="listing-body">
-              <div class="listing-price">{{ item.formatted_price }}</div>
-              <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none">
-                <h6 class="listing-title">{{ item.title }}</h6>
-              </a>
-              <div class="listing-location">
-                <i class="bi bi-geo-alt-fill text-danger"></i>
-                <span>{{ item.district }}, {{ item.city }} {% if item.neighborhood %}({{ item.neighborhood }}){% endif %}</span>
+      <!-- Vitrin Kartları -->
+      <div class="row g-3">
+        {% for item in latest_listings %}
+          <div class="col-lg-4 col-sm-6">
+            <div class="sh-card">
+              <div class="sh-card-img-wrap">
+                <button class="btn-fav-icon {% if item.id in favorite_ids %}active{% endif %}" data-listing-id="{{ item.id }}" title="Favoriye Ekle">
+                  <i class="bi {% if item.id in favorite_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
+                </button>
+                {% if item.image_url %}
+                  <img src="{{ item.image_url }}" alt="{{ item.title }}" class="sh-card-img">
+                {% else %}
+                  <div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted">
+                    <i class="bi bi-image fs-1"></i>
+                  </div>
+                {% endif %}
               </div>
 
-              {% if item.specs %}
-                <div class="specs-pills">
-                  {% for key, val in item.specs.items %}
-                    <span class="spec-pill">{{ key|title }}: {{ val }}</span>
-                  {% endfor %}
+              <div class="p-3 d-flex flex-column flex-grow-1">
+                <div class="sh-card-price mb-1">{{ item.formatted_price }}</div>
+                <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none text-dark">
+                  <div class="fw-bold small mb-2 text-truncate" title="{{ item.title }}">{{ item.title }}</div>
+                </a>
+
+                <div class="text-muted small mb-2 d-flex align-items-center gap-1">
+                  <i class="bi bi-geo-alt-fill text-danger"></i>
+                  <span>{{ item.district }}, {{ item.city }}</span>
                 </div>
-              {% endif %}
+
+                <!-- Tescil & Fiyat Rozeti -->
+                <div class="mt-auto pt-2 border-top d-flex flex-wrap gap-1 align-items-center">
+                  {% if item.is_verified %}
+                    <span class="sh-badge-verified">
+                      <i class="bi bi-patch-check-fill"></i> %{{ item.verification_score }} Tescilli
+                    </span>
+                  {% endif %}
+                  {% if item.market_price_diff %}
+                    <span class="sh-badge-price-diff">{{ item.market_price_diff }}</span>
+                  {% endif %}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      {% endfor %}
+        {% endfor %}
+      </div>
+
     </div>
   </div>
-</section>
+
+</div>
 {% endblock %}
