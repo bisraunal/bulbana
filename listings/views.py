@@ -1,16 +1,14 @@
 import json
-import re
 import time
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Count
 from django.contrib import messages
-from django.utils.html import escape
 from .models import Category, Listing, UserPreference, ListingInteraction
 from .forms import UserPreferenceForm, QuickSearchForm
+from .ai_engine import process_chat_message
 
-# Basit in-memory rate limiter
 _CHAT_RATE_LIMIT = {}
 
 def _get_session_key(request):
@@ -249,10 +247,7 @@ def toggle_favorite_ajax_view(request, listing_id):
 @require_POST
 def chatbot_assistant_ajax_view(request):
     """
-    🤖 KESİN VE DOĞRU HEDEFLEMELİ AKILLI CHATBOT ASİSTANI
-    - Telefon istendiğinde ASLA laptop/MacBook göstermez.
-    - Bilgisayar istendiğinde ASLA telefon göstermez.
-    - Uygun fiyat dendiğinde en ekonomik tescilli ürünleri sıralar.
+    🤖 AKILLI CHATBOT ASİSTANI (Multi-turn Context & AI Engine)
     """
     session_key = _get_session_key(request)
     client_ip = request.META.get('REMOTE_ADDR', session_key)
@@ -275,179 +270,25 @@ def chatbot_assistant_ajax_view(request):
     if not raw_message:
         return JsonResponse({'error': 'Lütfen bir mesaj yazın.'}, status=400)
 
-    clean_message = escape(raw_message)
-    msg_lower = clean_message.lower()
+    # Session Hafızası
+    session_data = {
+        'chat_history': request.session.get('chat_history', []),
+        'last_context': request.session.get('last_context', {}),
+    }
 
-    # Türkçe Karakter Normalizasyonu
-    def norm_tr(txt):
-        replacements = {'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'}
-        for k, v in replacements.items():
-            txt = txt.replace(k, v)
-        return txt
+    result = process_chat_message(
+        raw_message=raw_message,
+        session_data=session_data,
+        user=request.user,
+        session_key=session_key
+    )
 
-    msg_norm = norm_tr(msg_lower)
-
-    # 1. Selam / Sohbet Kontrolü
-    greetings = ['selam', 'merhaba', 'slm', 'mrb', 'gunaydin', 'iyi gunler', 'naber', 'nasilsin', 'hey']
-    if any(msg_norm == g or msg_norm.startswith(g + ' ') for g in greetings) and len(msg_norm.split()) <= 2:
-        return JsonResponse({
-            'status': 'success',
-            'reply': "Selam! 👋 Ben **BulBana Akıllı İlan Asistanı**.\n\nSana Sahibinden verileri üzerinden en doğru, tescilli ve bütçene uygun ilanları bulabilirim.\n\nNeye ihtiyacın var? Örneğin şunları yazabilirsin:\n- *\"Uygun fiyatlı bir telefon arıyorum\"*\n- *\"Kadıköy'de 30 bin TL altı kiralık ev\"*\n- *\"750 bin TL altı otomatik vites araba\"*",
-            'listings': []
-        })
-
-    # 2. Hassas Varlık (Entity) & Kategori Tespiti
-    is_phone = any(w in msg_norm for w in ['telefon', 'cep', 'iphone', 'samsung', 'xiaomi', 'redmi', 'galaxy'])
-    is_computer = any(w in msg_norm for w in ['laptop', 'bilgisayar', 'macbook', 'dizustu', 'kasa', 'pc', 'monitör', 'ram', 'ssd'])
-    is_real_estate = any(w in msg_norm for w in ['ev', 'daire', 'kiralik', 'satilik', 'konut', 'bina', 'oda', 'balkon', 'emlak', '1+1', '2+1', '3+1'])
-    is_vehicle = any(w in msg_norm for w in ['araba', 'otomobil', 'arac', 'vasita', 'clio', 'polo', 'egea', 'hatchback', 'sedan', 'vites', 'km', 'motor', 'dizel', 'benzin'])
-    is_budget_friendly = any(w in msg_norm for w in ['uygun', 'ucuz', 'hesapli', 'ekonomik', 'butce', 'firsat', 'ogrenci'])
-
-    # Bütçe Sınırı Tespiti
-    detected_max_price = None
-    price_match = re.search(r'(\d+[\d\.,]*)\s*(bin|k|milyon|tl|lira)?\s*(alti|altinda|kadar|butce|civarı|butcem)?', msg_norm)
-    if price_match:
-        val_str = price_match.group(1).replace('.', '').replace(',', '.')
-        unit = price_match.group(2)
-        try:
-            val = float(val_str)
-            if unit in ['bin', 'k']:
-                val *= 1000
-            elif unit == 'milyon':
-                val *= 1000000
-            elif val < 1000 and ('bin' in msg_norm or 'k' in msg_norm):
-                val *= 1000
-            if val > 500:
-                detected_max_price = val
-        except ValueError:
-            pass
-
-    # Şehir ve İlçe Tespiti
-    city_map = {'istanbul': 'İstanbul', 'ankara': 'Ankara', 'izmir': 'İzmir', 'bursa': 'Bursa', 'antalya': 'Antalya'}
-    district_map = {'kadikoy': 'Kadıköy', 'besiktas': 'Beşiktaş', 'cankaya': 'Çankaya', 'karsiyaka': 'Karşıyaka', 'bornova': 'Bornova', 'moda': 'Moda'}
-
-    detected_city = None
-    detected_district = None
-    for k, v in city_map.items():
-        if k in msg_norm: detected_city = v; break
-    for k, v in district_map.items():
-        if k in msg_norm: detected_district = v; break
-
-    # 3. KESİN VE HASSAS VERİTABANI SORGUSU
-    listings_qs = Listing.objects.filter(is_active=True).select_related('category')
-
-    item_type_label = "İlanlar"
-
-    if is_phone:
-        item_type_label = "Telefonlar"
-        # SADECE telefonları al, bilgisayarları KESİNLİKLE DIŞLA
-        listings_qs = listings_qs.filter(
-            Q(title__icontains='iphone') | Q(title__icontains='samsung') | Q(title__icontains='redmi') | Q(title__icontains='telefon') | Q(specs__icontains='Telefon')
-        ).exclude(
-            Q(title__icontains='macbook') | Q(title__icontains='laptop') | Q(title__icontains='bilgisayar') | Q(title__icontains='legion')
-        )
-    elif is_computer:
-        item_type_label = "Bilgisayar & Laptoplar"
-        # SADECE bilgisayarları al, telefonları KESİNLİKLE DIŞLA
-        listings_qs = listings_qs.filter(
-            Q(title__icontains='macbook') | Q(title__icontains='laptop') | Q(title__icontains='bilgisayar') | Q(title__icontains='legion') | Q(specs__icontains='Laptop')
-        ).exclude(
-            Q(title__icontains='iphone') | Q(title__icontains='samsung') | Q(title__icontains='redmi')
-        )
-    elif is_real_estate:
-        item_type_label = "Emlak & Daireler"
-        listings_qs = listings_qs.filter(category__slug='emlak')
-    elif is_vehicle:
-        item_type_label = "Vasıta & Araçlar"
-        listings_qs = listings_qs.filter(category__slug='vasita')
-
-    # Konum filtresi
-    if detected_city:
-        listings_qs = listings_qs.filter(Q(city__icontains=detected_city))
-    if detected_district:
-        listings_qs = listings_qs.filter(Q(district__icontains=detected_district) | Q(neighborhood__icontains=detected_district) | Q(title__icontains=detected_district))
-
-    # Bütçe filtresi
-    if detected_max_price:
-        listings_qs = listings_qs.filter(price__lte=detected_max_price * 1.15)
-
-    # Sıralama (Uygun fiyat istendiyse önce en ucuzları getir)
-    if is_budget_friendly:
-        listings_qs = listings_qs.order_by('price')
-    else:
-        listings_qs = listings_qs.order_by('-created_at')
-
-    candidates = list(listings_qs)
-
-    # Hiçbir şey bulunamadıysa ASLA alakasız ürün gösterme
-    if not candidates:
-        return JsonResponse({
-            'status': 'success',
-            'reply': f"Aradığın kriterlere uygun **{item_type_label}** kategorisinde ilan şu anda bulunamadı. 🔍\n\nFiyat veya marka kriterlerini biraz esneterek tekrar arama yapabilirsin.",
-            'listings': []
-        })
-
-    # Puanlama & Açıklama
-    scored_items = []
-    for item in candidates:
-        score = 85
-        reasons = []
-
-        if is_budget_friendly:
-            score += 10
-            reasons.append(f"💰 Uygun fiyatlı & bütçe dostu ({item.formatted_price})")
-        elif detected_max_price and float(item.price) <= detected_max_price:
-            score += 10
-            reasons.append(f"💰 Bütçenizin altında ({item.formatted_price})")
-
-        if item.is_verified:
-            reasons.append(f"🛡️ %{item.verification_score} Doğrulanmış & Tescilli İlan")
-
-        if detected_district or detected_city:
-            reasons.append(f"📍 {item.district}, {item.city} konumunda")
-
-        scored_items.append({
-            'item': item,
-            'score': min(100, max(60, score)),
-            'reasons': reasons
-        })
-
-    scored_items.sort(key=lambda x: x['score'], reverse=True)
-    top_matches = scored_items[:3]
-
-    # Bot Cevap Metni
-    reply_lines = [f"Senin için kriterlerine tam uyan **{len(top_matches)} tescilli {item_type_label.lower()}** buldum:"]
-    if is_budget_friendly:
-        reply_lines.append("🏷️ *En uygun fiyatlı seçeneklerden sıralandı.*")
-    if detected_max_price:
-        reply_lines.append(f"💰 Bütçe: **{detected_max_price:,.0f} TL altı**".replace(',', '.'))
-    if detected_city or detected_district:
-        reply_lines.append(f"📍 Konum: **{detected_district or detected_city}**")
-
-    reply_text = "\n".join(reply_lines)
-
-    listings_data = []
-    favorite_ids = _get_user_favorites(request)
-
-    for match in top_matches:
-        it = match['item']
-        listings_data.append({
-            'id': it.id,
-            'title': it.title,
-            'price': it.formatted_price,
-            'location': f"{it.district}, {it.city}",
-            'image_url': it.image_url,
-            'match_score': match['score'],
-            'reasons': match['reasons'],
-            'is_verified': it.is_verified,
-            'verification_score': it.verification_score,
-            'market_price_diff': it.market_price_diff,
-            'is_favorite': it.id in favorite_ids,
-            'detail_url': f"/listings/{it.id}/"
-        })
+    # Güncellenmiş bağlamı oturuma kaydet
+    request.session['last_context'] = result.get('updated_context', {})
+    request.session.modified = True
 
     return JsonResponse({
         'status': 'success',
-        'reply': reply_text,
-        'listings': listings_data
+        'reply': result['reply'],
+        'listings': result['listings']
     })

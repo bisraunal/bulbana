@@ -113,34 +113,49 @@
     {% block content %}{% endblock %}
   </main>
 
-  <!-- 🤖 Yüzen Chatbot Asistan Butonu & Penceresi -->
+  <!-- 🤖 Yüzen Chatbot Asistan Butonu & Gelişmiş Penceresi -->
   <div class="chatbot-widget-btn" id="chatbotToggleBtn" title="Akıllı Asistan ile Konuş">
     <i class="bi bi-robot fs-5"></i>
     <span>BulBana AI Asistan</span>
   </div>
 
-  <div class="chatbot-box" id="chatbotBox">
+  <div class="chatbot-box" id="chatbotBox" style="height: 580px;">
     <div class="chatbot-header">
       <div class="d-flex align-items-center gap-2">
         <div class="bg-warning text-dark rounded-circle p-1 d-flex"><i class="bi bi-robot"></i></div>
         <div>
-          <div class="fw-bold small">BulBana Akıllı Asistan</div>
+          <div class="fw-bold small">BulBana Akıllı Asistan & Danışman</div>
           <div class="text-success" style="font-size: 0.72rem;">● Çevrimiçi & Sahibinden Entegre</div>
         </div>
       </div>
       <button class="btn btn-sm btn-link text-white p-0" id="chatbotClose"><i class="bi bi-x-lg"></i></button>
     </div>
 
+    <!-- Sohbet Gövdesi -->
     <div class="chatbot-body" id="chatbotBody">
       <div class="chat-msg chat-msg-bot">
-        Merhaba! 👋 Ne arıyorsun? Bana doğrudan günlük dille yazabilirsin:
+        Merhaba! 👋 Ben <strong>BulBana Akıllı İlan Asistanı & Piyasa Danışmanıyım</strong>.
         <br><br>
-        <em>Örnek: "Kadıköy'de 30 bin TL altı balkonlu 2+1 ev bul"</em> veya <em>"800 bin TL altı otomatik az yakan araba"</em>.
+        Bana doğrudan ihtiyacını yazabilir veya sesli söyleyebilirsin:
+        <br><br>
+        <em>Örnek: "Kadıköy'de 30 bin TL altı balkonlu ev bul"</em> ya da <em>"Uygun fiyatlı telefon"</em>.
       </div>
     </div>
 
+    <!-- Hızlı Öneri Hapları (Quick Chips) -->
+    <div class="px-2 pt-2 bg-light border-top d-flex gap-1 overflow-auto" id="chatChips">
+      <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-nowrap rounded-pill chat-chip" style="font-size: 0.75rem;">Kadıköy 2+1 Ev</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-nowrap rounded-pill chat-chip" style="font-size: 0.75rem;">Uygun Fiyatlı Telefon</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-nowrap rounded-pill chat-chip" style="font-size: 0.75rem;">800k Altı Araba</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-nowrap rounded-pill chat-chip" style="font-size: 0.75rem;">Pazarlık Taktikleri</button>
+    </div>
+
+    <!-- Mesaj Gönderme & Sesli Arama Girişi -->
     <div class="chatbot-footer">
-      <form id="chatbotForm" class="d-flex gap-2">
+      <form id="chatbotForm" class="d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-1 px-2" id="voiceSearchBtn" title="Sesle Arama Yap">
+          <i class="bi bi-mic-fill"></i>
+        </button>
         <input type="text" id="chatbotInput" class="form-control form-control-sm rounded-1" placeholder="İstediğin evi, arabayı yaz..." autocomplete="off">
         <button type="submit" class="btn btn-warning btn-sm fw-bold px-3"><i class="bi bi-send-fill"></i></button>
       </form>

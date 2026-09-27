@@ -1,5 +1,5 @@
 /**
- * BulBana - Akıllı Arayış Chatbot Asistanı (Client JS)
+ * BulBana - Akıllı Arayış Chatbot Asistanı (Voice Search & Multi-turn & Chips)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatForm = document.getElementById('chatbotForm');
   const chatInput = document.getElementById('chatbotInput');
   const chatBody = document.getElementById('chatbotBody');
+  const voiceBtn = document.getElementById('voiceSearchBtn');
+  const chips = document.querySelectorAll('.chat-chip');
 
   if (!chatbotBtn || !chatbotBox || !chatForm) return;
 
@@ -29,12 +31,58 @@ document.addEventListener('DOMContentLoaded', () => {
     chatbotBox.classList.remove('active');
   });
 
-  // Mesaj Ekleme Yardımcısı
+  // Hızlı Öneri Hapları (Chips)
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chatInput.value = chip.textContent.trim();
+      chatForm.dispatchEvent(new Event('submit'));
+    });
+  });
+
+  // 🎙️ Sesli Arama (Web Speech API)
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'tr-TR';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    voiceBtn.addEventListener('click', () => {
+      voiceBtn.classList.add('btn-danger', 'text-white');
+      voiceBtn.classList.remove('btn-outline-secondary');
+      chatInput.placeholder = 'Dinliyorum, konuşun...';
+      recognition.start();
+    });
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      chatInput.value = transcript;
+      voiceBtn.classList.remove('btn-danger', 'text-white');
+      voiceBtn.classList.add('btn-outline-secondary');
+      chatInput.placeholder = 'İstediğin evi, arabayı yaz...';
+      chatForm.dispatchEvent(new Event('submit'));
+    };
+
+    recognition.onerror = () => {
+      voiceBtn.classList.remove('btn-danger', 'text-white');
+      voiceBtn.classList.add('btn-outline-secondary');
+      chatInput.placeholder = 'İstediğin evi, arabayı yaz...';
+    };
+
+    recognition.onend = () => {
+      voiceBtn.classList.remove('btn-danger', 'text-white');
+      voiceBtn.classList.add('btn-outline-secondary');
+      chatInput.placeholder = 'İstediğin evi, arabayı yaz...';
+    };
+  } else {
+    if (voiceBtn) voiceBtn.style.display = 'none';
+  }
+
+  // Mesaj Ekleme
   const appendMessage = (text, isUser = false, listings = []) => {
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-msg ${isUser ? 'chat-msg-user' : 'chat-msg-bot'}`;
     
-    // Markdown formatlama (**bold**, *italic*, \n -> <br>)
     let formattedText = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -57,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="text-primary fw-bold small">${item.price}</span>
               <span class="badge bg-success small" style="font-size:0.7rem;">%${item.match_score} Uyum</span>
             </div>
+            ${item.market_price_diff ? `<div class="text-success small fw-semibold" style="font-size:0.68rem;"><i class="bi bi-tag-fill me-1"></i>${item.market_price_diff}</div>` : ''}
             <div class="mt-1 d-flex justify-content-between align-items-center">
               <span class="text-muted" style="font-size:0.7rem;">${item.location}</span>
               <a href="${item.detail_url}" class="btn btn-sm btn-dark py-0 px-2 fw-bold" style="font-size:0.7rem;">İncele &rarr;</a>
@@ -73,21 +122,19 @@ document.addEventListener('DOMContentLoaded', () => {
     chatBody.scrollTop = chatBody.scrollHeight;
   };
 
-  // Form Gönderme
+  // Form Gönderimi
   chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const userText = chatInput.value.trim();
     if (!userText) return;
 
-    // Kullanıcı mesajını göster
     appendMessage(userText, true);
     chatInput.value = '';
 
-    // Yükleniyor baloncuğu
     const loadingDiv = document.createElement('div');
     loadingDiv.className = 'chat-msg chat-msg-bot text-muted small fst-italic';
     loadingDiv.id = 'chatLoading';
-    loadingDiv.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Sahibinden verileri taranıyor...';
+    loadingDiv.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Sahibinden verileri & tesciller taranıyor...';
     chatBody.appendChild(loadingDiv);
     chatBody.scrollTop = chatBody.scrollHeight;
 
