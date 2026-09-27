@@ -34,8 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-msg ${isUser ? 'chat-msg-user' : 'chat-msg-bot'}`;
     
-    // Markdown bold formatı (**bold** -> <strong>bold</strong>)
-    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Markdown formatlama (**bold**, *italic*, \n -> <br>)
+    let formattedText = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+
     msgDiv.innerHTML = `<div>${formattedText}</div>`;
 
     if (listings && listings.length > 0) {
