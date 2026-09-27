@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profilim & Arayışlarım — BulBana{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Profil Başlık Kartı -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold fs-2" style="width: 64px; height: 64px;">
+          {{ user.username|slice:":1"|upper }}
+        </div>
+        <div>
+          <h3 class="fw-extrabold text-dark mb-0">@{{ user.username }}</h3>
+          <p class="text-muted small mb-0"><i class="bi bi-envelope me-1"></i> {{ user.email|default:"E-posta belirtilmemiş" }}</p>
+        </div>
+      </div>
+
+      <div class="d-flex gap-3">
+        <div class="p-3 bg-light rounded-3 text-center border px-4">
+          <div class="fw-extrabold fs-4 text-primary">{{ pref_count }}</div>
+          <div class="text-muted small fw-semibold">Arayış Profili</div>
+        </div>
+        <div class="p-3 bg-light rounded-3 text-center border px-4">
+          <div class="fw-extrabold fs-4 text-danger">{{ fav_count }}</div>
+          <div class="text-muted small fw-semibold">Favori İlan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sekmeler (Arayışlarım / Favorilerim) -->
+  <ul class="nav nav-pills mb-4 gap-2" id="profileTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active rounded-pill px-4 fw-bold" id="prefs-tab" data-bs-toggle="pill" data-bs-target="#prefs-tab-pane" type="button" role="tab">
+        <i class="bi bi-stars text-warning me-1"></i> Kayıtlı Arayışlarım ({{ pref_count }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link rounded-pill px-4 fw-bold" id="favs-tab" data-bs-toggle="pill" data-bs-target="#favs-tab-pane" type="button" role="tab">
+        <i class="bi bi-heart-fill text-danger me-1"></i> Favori İlanlarım ({{ fav_count }})
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="profileTabsContent">
+    
+    <!-- Tab 1: Arayışlarım -->
+    <div class="tab-pane fade show active" id="prefs-tab-pane" role="tabpanel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-dark mb-0">Aktif Arayış Profillerin</h5>
+        <a href="{% url 'create_preference' %}" class="btn btn-wizard-cta btn-sm">
+          <i class="bi bi-plus-circle me-1"></i> Yeni Arayış Ekle
+        </a>
+      </div>
+
+      <div class="row g-4">
+        {% for pref in preferences %}
+          <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <span class="badge bg-primary px-3 py-1 rounded-pill">
+                  <i class="bi bi-tag-fill text-warning me-1"></i> {{ pref.category.name }}
+                </span>
+                <form action="{% url 'delete_preference' pref.id %}" method="post" onsubmit="return confirm('Bu arayış profilini silmek istediğinize emin misiniz?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle" title="Profili Sil">
+                    <i class="bi bi-trash3-fill"></i>
+                  </button>
+                </form>
+              </div>
+
+              <h5 class="fw-bold text-dark mb-2">{{ pref.title }}</h5>
+
+              <div class="text-muted small mb-3 d-flex flex-column gap-1">
+                {% if pref.min_price or pref.max_price %}
+                  <div><i class="bi bi-wallet2 text-success me-1"></i> Bütçe: <strong>{% if pref.min_price %}{{ pref.min_price|floatformat:0 }} TL{% else %}0 TL{% endif %} - {% if pref.max_price %}{{ pref.max_price|floatformat:0 }} TL{% else %}&infin;{% endif %}</strong></div>
+                {% endif %}
+                {% if pref.target_city %}
+                  <div><i class="bi bi-geo-alt-fill text-danger me-1"></i> Konum: <strong>{{ pref.target_city }}{% if pref.target_district %} / {{ pref.target_district }}{% endif %}</strong></div>
+                {% endif %}
+                {% if pref.keywords %}
+                  <div><i class="bi bi-check2-circle text-primary me-1"></i> Kriterler: <strong>{{ pref.keywords }}</strong></div>
+                {% endif %}
+              </div>
+
+              <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                <span class="badge bg-light text-secondary border">{{ pref.get_priority_display }}</span>
+                <a href="{% url 'recommendations' %}?pref_id={{ pref.id }}" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark">
+                  <i class="bi bi-stars"></i> Önerileri Gör &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
+            <i class="bi bi-stars display-4 text-warning mb-3 d-block"></i>
+            <h5 class="fw-bold text-dark">Henüz kayıtlı bir arayış profilin yok.</h5>
+            <p class="text-muted small">Ev, araba veya teknoloji arayışını kaydet, en uygun ilanları listeyelim.</p>
+            <a href="{% url 'create_preference' %}" class="btn btn-wizard-cta px-4 py-2">
+              <i class="bi bi-magic me-1"></i> İlk Arayışını Başlat
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Tab 2: Favori İlanlarım -->
+    <div class="tab-pane fade" id="favs-tab-pane" role="tabpanel">
+      <div class="row g-4">
+        {% for item in favorite_listings %}
+          <div class="col-lg-4 col-md-6">
+            <div class="listing-card">
+              <div class="listing-img-wrapper">
+                <span class="category-badge">{{ item.category.name }}</span>
+                <button class="btn-favorite-icon active" data-listing-id="{{ item.id }}" title="Favorilerden Çıkar">
+                  <i class="bi bi-heart-fill text-danger"></i>
+                </button>
+                {% if item.image_url %}
+                  <img src="{{ item.image_url }}" alt="{{ item.title }}" class="listing-img">
+                {% endif %}
+              </div>
+
+              <div class="listing-body">
+                <div class="listing-price">{{ item.formatted_price }}</div>
+                <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none">
+                  <h6 class="listing-title">{{ item.title }}</h6>
+                </a>
+                <div class="listing-location">
+                  <i class="bi bi-geo-alt-fill text-danger"></i>
+                  <span>{{ item.district }}, {{ item.city }}</span>
+                </div>
+
+                <div class="d-grid mt-3">
+                  <a href="{% url 'listing_detail' item.id %}" class="btn btn-outline-dark btn-sm rounded-pill fw-bold">
+                    İlanı İncele &rarr;
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
+            <i class="bi bi-heart display-4 text-muted mb-3 d-block"></i>
+            <h5 class="fw-bold text-dark">Henüz favoriye eklediğin bir ilan yok.</h5>
+            <p class="text-muted small">İlanlardaki kalp ikonuna tıklayarak beğendiğin ilanları buraya kaydedebilirsin.</p>
+            <a href="{% url 'listing_list' %}" class="btn btn-dark rounded-pill px-4 py-2">İlanları Keşfet</a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

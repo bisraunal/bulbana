@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ listing.title }} — BulBana{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">Ana Sayfa</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'listing_list' %}?category={{ listing.category.slug }}" class="text-decoration-none">{{ listing.category.name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ listing.city }} / {{ listing.district }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- Sol Kolon: Görsel ve Açıklama -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+        <div class="position-relative" style="height: 420px; background: #e2e8f0;">
+          <span class="category-badge fs-6 px-3 py-2">{{ listing.category.name }}</span>
+          {% if listing.image_url %}
+            <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-100 h-100 object-fit-cover">
+          {% else %}
+            <div class="d-flex align-items-center justify-content-center h-100 text-secondary">
+              <i class="bi bi-image display-1"></i>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="p-4 p-md-5">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h2 class="fw-extrabold text-dark mb-2">{{ listing.title }}</h2>
+              <div class="text-muted d-flex align-items-center gap-2">
+                <i class="bi bi-geo-alt-fill text-danger"></i>
+                <span class="fw-semibold">{{ listing.district }}, {{ listing.city }} {% if listing.neighborhood %}({{ listing.neighborhood }}){% endif %}</span>
+                <span>&bull;</span>
+                <span class="small"><i class="bi bi-calendar3 me-1"></i> {{ listing.created_at|date:"d M Y" }}</span>
+                <span>&bull;</span>
+                <span class="small"><i class="bi bi-eye me-1"></i> {{ listing.view_count }} görüntülenme</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <h5 class="fw-bold mb-3"><i class="bi bi-card-text text-warning me-2"></i> İlan Açıklaması</h5>
+          <p class="text-secondary leading-relaxed" style="white-space: pre-line;">
+            {{ listing.description }}
+          </p>
+
+          <hr class="my-4">
+
+          <h5 class="fw-bold mb-3"><i class="bi bi-sliders text-warning me-2"></i> Teknik Parametreler & Özellikler</h5>
+          {% if listing.specs %}
+            <div class="row g-3">
+              {% for key, val in listing.specs.items %}
+                <div class="col-sm-6">
+                  <div class="p-3 bg-light rounded-3 d-flex justify-content-between align-items-center border">
+                    <span class="text-muted small fw-bold">{{ key|title }}</span>
+                    <span class="fw-extrabold text-dark">
+                      {% if val == True %}
+                        <i class="bi bi-check-circle-fill text-success"></i> Var
+                      {% elif val == False %}
+                        <i class="bi bi-x-circle-fill text-danger"></i> Yok
+                      {% else %}
+                        {{ val }}
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small">Ek özellik belirtilmemiş.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Sağ Kolon: Fiyat Kartı, Aksiyonlar ve Sahibinden Linki -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top bg-white" style="top: 90px;">
+        <span class="text-muted small fw-bold text-uppercase">İlan Fiyatı</span>
+        <h2 class="fw-extrabold text-primary mb-3">{{ listing.formatted_price }}</h2>
+
+        <div class="d-grid gap-2 mb-4">
+          <button class="btn btn-outline-danger py-2 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2 btn-favorite-icon-standalone {% if is_favorite %}active{% endif %}" data-listing-id="{{ listing.id }}">
+            <i class="bi {% if is_favorite %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+            <span class="fav-text">{% if is_favorite %}Favorilerden Çıkar{% else %}Favorilere Kaydet{% endif %}</span>
+          </button>
+
+          {% if listing.source_url %}
+            <a href="{{ listing.source_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-warning py-2 rounded-3 fw-bold text-dark d-flex align-items-center justify-content-center gap-2 shadow-sm">
+              <i class="bi bi-box-arrow-up-right"></i> Sahibinden'de İncele
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="p-3 bg-light rounded-3 border">
+          <h6 class="fw-bold small mb-2"><i class="bi bi-shield-check text-success me-1"></i> BulBana Güvencesi</h6>
+          <p class="text-muted small mb-0">
+            Bu ilan Sahibinden veri tabanından analiz edilerek kriter eşleştirme algoritmamız tarafından doğrulanmıştır.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benzer İlanlar -->
+  {% if similar_listings %}
+    <div class="mt-5">
+      <h4 class="fw-extrabold text-dark mb-4">İlgini Çekebilecek Benzer İlanlar</h4>
+      <div class="row g-4">
+        {% for s in similar_listings %}
+          <div class="col-md-4">
+            <div class="listing-card">
+              <div class="listing-img-wrapper" style="height: 170px;">
+                {% if s.image_url %}
+                  <img src="{{ s.image_url }}" alt="{{ s.title }}" class="listing-img">
+                {% endif %}
+              </div>
+              <div class="listing-body">
+                <div class="listing-price fs-6">{{ s.formatted_price }}</div>
+                <a href="{% url 'listing_detail' s.id %}" class="text-decoration-none">
+                  <h6 class="listing-title small">{{ s.title }}</h6>
+                </a>
+                <div class="listing-location small">
+                  <i class="bi bi-geo-alt-fill text-danger"></i>
+                  <span>{{ s.district }}, {{ s.city }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

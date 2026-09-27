@@ -1,0 +1,406 @@
+/* ==========================================================================
+   BulBana - Sahibinden Akıllı İlan Öneri & Eşleştirme Platformu
+   ========================================================================== */
+
+:root {
+  --primary: #0f172a;        /* Gece Mavisi */
+  --primary-light: #1e293b;
+  --accent-yellow: #ffd000;  /* Sahibinden Sarısı */
+  --accent-yellow-hover: #e6bc00;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-purple: #8b5cf6;
+  --accent-red: #ef4444;
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   Navbar & Header
+   ========================================================================== */
+.navbar-custom {
+  background-color: var(--primary);
+  border-bottom: 3px solid var(--accent-yellow);
+  padding: 0.85rem 0;
+  box-shadow: var(--shadow-md);
+}
+
+.brand-logo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  letter-spacing: -0.5px;
+}
+
+.brand-logo .logo-accent {
+  background: var(--accent-yellow);
+  color: var(--primary);
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+
+.nav-link-custom {
+  color: #e2e8f0 !important;
+  font-weight: 600;
+  padding: 0.5rem 1rem !important;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.nav-link-custom:hover {
+  color: var(--accent-yellow) !important;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-wizard-cta {
+  background: linear-gradient(135deg, var(--accent-yellow) 0%, #fbbf24 100%);
+  color: var(--primary) !important;
+  font-weight: 700;
+  border: none;
+  padding: 0.55rem 1.25rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px rgba(255, 208, 0, 0.35);
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-wizard-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 208, 0, 0.45);
+}
+
+/* ==========================================================================
+   Hero Section
+   ========================================================================== */
+.hero-section {
+  background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  padding: 4.5rem 0 3.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255, 208, 0, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-title {
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.hero-title .highlight {
+  color: var(--accent-yellow);
+  text-decoration: underline wavy var(--accent-yellow);
+  text-underline-offset: 6px;
+}
+
+.hero-subtitle {
+  color: #94a3b8;
+  font-size: 1.15rem;
+  font-weight: 400;
+  max-width: 620px;
+}
+
+.hero-search-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   Listing Cards
+   ========================================================================== */
+.listing-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  transition: var(--transition);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.listing-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: #cbd5e1;
+}
+
+.listing-img-wrapper {
+  position: relative;
+  width: 100%;
+  height: 210px;
+  background-color: #e2e8f0;
+  overflow: hidden;
+}
+
+.listing-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.listing-card:hover .listing-img {
+  transform: scale(1.05);
+}
+
+.category-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  z-index: 2;
+}
+
+.btn-favorite-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #ffffff;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.btn-favorite-icon:hover, .btn-favorite-icon.active {
+  color: var(--accent-red);
+  transform: scale(1.15);
+}
+
+.listing-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.listing-price {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 0.35rem;
+}
+
+.listing-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.8rem;
+}
+
+.listing-location {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.85rem;
+}
+
+.specs-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.spec-pill {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================================================
+   Akıllı Eşleşme (Recommendation) Bileşenleri
+   ========================================================================== */
+.match-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  box-shadow: var(--shadow-sm);
+}
+
+.match-high {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.match-medium {
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.match-low {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.match-reasons-box {
+  background: #f8fafc;
+  border-left: 3px solid var(--accent-green);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.65rem 0.85rem;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+.match-reason-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #334155;
+  margin-bottom: 0.25rem;
+}
+
+.match-reason-item:last-child {
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Kategori Kartları
+   ========================================================================== */
+.category-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  transition: var(--transition);
+  text-decoration: none;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-yellow);
+  box-shadow: var(--shadow-md);
+  color: var(--primary);
+}
+
+.category-icon-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+  transition: var(--transition);
+}
+
+.category-card:hover .category-icon-circle {
+  background: var(--accent-yellow);
+  transform: scale(1.1);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.footer-custom {
+  background-color: var(--primary);
+  color: #94a3b8;
+  padding: 3rem 0 1.5rem 0;
+  margin-top: auto;
+  border-top: 1px solid var(--primary-light);
+}
+
+.footer-custom a {
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.footer-custom a:hover {
+  color: var(--accent-yellow);
+}
+
+/* ==========================================================================
+   Toast Bildirimleri
+   ========================================================================== */
+.toast-container-custom {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+}

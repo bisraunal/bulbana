@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Giriş Yap — BulBana{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5 col-sm-8">
+      <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 bg-white">
+        <div class="text-center mb-4">
+          <div class="brand-logo justify-content-center text-dark mb-2">
+            <i class="bi bi-search-heart-fill text-warning"></i>
+            <span class="text-dark">Bul<span class="logo-accent">Bana</span></span>
+          </div>
+          <h4 class="fw-extrabold text-dark">Giriş Yap</h4>
+          <p class="text-muted small">Arayış profillerine ve favorilerine eriş</p>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger rounded-3 small">
+              {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">{{ form.username.label }}</label>
+            {{ form.username }}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold small">{{ form.password.label }}</label>
+            {{ form.password }}
+          </div>
+
+          <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-dark py-2 rounded-3 fw-bold">Giriş Yap</button>
+          </div>
+        </form>
+
+        <div class="text-center text-muted small mt-3">
+          Hesabın yok mu? <a href="{% url 'register' %}" class="fw-bold text-dark text-decoration-none">Hemen Kayıt Ol</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

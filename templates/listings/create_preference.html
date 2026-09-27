@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Arayış Sihirbazı — Sana En Uygun İlanı Bulalım{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      
+      <div class="text-center mb-4">
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-2 shadow-sm">
+          <i class="bi bi-stars"></i> Adım Adım Kriter Belirleme
+        </span>
+        <h2 class="fw-extrabold text-dark">Ne Arıyorsun? Sana Özel İlanları Eşleştirelim</h2>
+        <p class="text-muted">
+          Bütçeni, konumunu ve önceliklerini belirt; akıllı motorumuz Sahibinden ilanları arasından sana en yüksek uyumlu olanları saniyesinde çıkarsın.
+        </p>
+      </div>
+
+      <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 bg-white">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger rounded-3">
+              {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <!-- Arayış Başlığı -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">{{ form.title.label }} <span class="text-danger">*</span></label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+            <div class="form-text">Örn: "Kadıköy 2+1 Ev", "Otomatik Vites Aile Arabası", "Yazılım İçin MacBook"</div>
+          </div>
+
+          <!-- Kategori -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">{{ form.category.label }} <span class="text-danger">*</span></label>
+            {{ form.category }}
+            {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+          </div>
+
+          <!-- Bütçe Aralığı (Min - Max) -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">{{ form.min_price.label }}</label>
+              {{ form.min_price }}
+              {% if form.min_price.errors %}<div class="text-danger small mt-1">{{ form.min_price.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">{{ form.max_price.label }}</label>
+              {{ form.max_price }}
+              {% if form.max_price.errors %}<div class="text-danger small mt-1">{{ form.max_price.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <!-- Hedef Lokasyon -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">{{ form.target_city.label }}</label>
+              {{ form.target_city }}
+              {% if form.target_city.errors %}<div class="text-danger small mt-1">{{ form.target_city.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">{{ form.target_district.label }}</label>
+              {{ form.target_district }}
+              {% if form.target_district.errors %}<div class="text-danger small mt-1">{{ form.target_district.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <!-- Anahtar Kelimeler / Olmazsa Olmazlar -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">{{ form.keywords.label }}</label>
+            {{ form.keywords }}
+            {% if form.keywords.errors %}<div class="text-danger small mt-1">{{ form.keywords.errors.0 }}</div>{% endif %}
+            <div class="form-text">{{ form.keywords.help_text }}</div>
+          </div>
+
+          <!-- Öncelik Seçimi -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">{{ form.priority.label }}</label>
+            {{ form.priority }}
+            {% if form.priority.errors %}<div class="text-danger small mt-1">{{ form.priority.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-wizard-cta py-3 fs-5 justify-content-center shadow-lg">
+              <i class="bi bi-sparkles me-2"></i> Eşleştir ve Bana Uygun İlanları Getir
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

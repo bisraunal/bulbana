@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tüm Sahibinden İlanları — BulBana{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header & Arama -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label fw-bold small text-muted">Arama Kelimesi</label>
+        {{ form.q }}
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label fw-bold small text-muted">Kategori</label>
+        {{ form.category }}
+      </div>
+      <div class="col-lg-2 col-md-6">
+        <label class="form-label fw-bold small text-muted">Şehir</label>
+        {{ form.city }}
+      </div>
+      <div class="col-lg-2 col-md-6">
+        <label class="form-label fw-bold small text-muted">Maks. Fiyat (TL)</label>
+        {{ form.max_price }}
+      </div>
+      <div class="col-lg-1 col-md-12 d-grid">
+        <button type="submit" class="btn btn-dark fw-bold py-2 rounded-3">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Kategori Filtre Hapları -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'listing_list' %}" class="btn btn-sm rounded-pill {% if not selected_category %}btn-dark fw-bold{% else %}btn-outline-secondary{% endif %}">
+      Tümü ({{ total_count }})
+    </a>
+    {% for cat in categories %}
+      <a href="?category={{ cat.slug }}" class="btn btn-sm rounded-pill {% if selected_category.slug == cat.slug %}btn-dark fw-bold{% else %}btn-outline-secondary{% endif %}">
+        <i class="bi {{ cat.icon }} me-1"></i> {{ cat.name }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Sonuçlar Başlığı ve Sıralama -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold text-dark mb-0">
+      {% if selected_category %}
+        {{ selected_category.name }} İlanları
+      {% else %}
+        Tüm Sahibinden İlanları
+      {% endif %}
+      <span class="badge bg-light text-dark border ms-2">{{ total_count }} İlan</span>
+    </h5>
+
+    <div class="d-flex align-items-center gap-2">
+      <span class="small text-muted d-none d-md-inline">Sıralama:</span>
+      <div class="btn-group btn-group-sm">
+        <a href="?sort=newest{% if selected_category %}&category={{ selected_category.slug }}{% endif %}" class="btn btn-outline-dark {% if current_sort == 'newest' %}active{% endif %}">En Yeni</a>
+        <a href="?sort=price_asc{% if selected_category %}&category={{ selected_category.slug }}{% endif %}" class="btn btn-outline-dark {% if current_sort == 'price_asc' %}active{% endif %}">Fiyat Artan</a>
+        <a href="?sort=price_desc{% if selected_category %}&category={{ selected_category.slug }}{% endif %}" class="btn btn-outline-dark {% if current_sort == 'price_desc' %}active{% endif %}">Fiyat Azalan</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- İlan Kartları Izgarası -->
+  <div class="row g-4">
+    {% for item in listings %}
+      <div class="col-lg-4 col-md-6">
+        <div class="listing-card">
+          <div class="listing-img-wrapper">
+            <span class="category-badge">{{ item.category.name }}</span>
+            <button class="btn-favorite-icon {% if item.id in favorite_ids %}active{% endif %}" data-listing-id="{{ item.id }}" title="Favorilere Ekle">
+              <i class="bi {% if item.id in favorite_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
+            </button>
+            {% if item.image_url %}
+              <img src="{{ item.image_url }}" alt="{{ item.title }}" class="listing-img">
+            {% else %}
+              <div class="d-flex align-items-center justify-content-center h-100 bg-secondary-subtle text-secondary">
+                <i class="bi bi-image fs-1"></i>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="listing-body">
+            <div class="listing-price">{{ item.formatted_price }}</div>
+            <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none">
+              <h6 class="listing-title">{{ item.title }}</h6>
+            </a>
+            <div class="listing-location">
+              <i class="bi bi-geo-alt-fill text-danger"></i>
+              <span>{{ item.district }}, {{ item.city }} {% if item.neighborhood %}({{ item.neighborhood }}){% endif %}</span>
+            </div>
+
+            {% if item.specs %}
+              <div class="specs-pills">
+                {% for key, val in item.specs.items %}
+                  <span class="spec-pill">{{ key|title }}: {{ val }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="d-grid mt-3">
+              <a href="{% url 'listing_detail' item.id %}" class="btn btn-outline-dark btn-sm rounded-pill fw-bold">
+                İlanı İncele &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-search display-3 text-muted mb-3 d-block"></i>
+        <h4 class="fw-bold text-dark">Aradığınız kriterlere uygun ilan bulunamadı.</h4>
+        <p class="text-muted">Arama filtrenizi temizleyebilir veya yeni bir arama yapabilirsiniz.</p>
+        <a href="{% url 'listing_list' %}" class="btn btn-dark rounded-pill px-4">Filtreleri Temizle</a>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
