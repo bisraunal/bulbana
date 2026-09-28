@@ -1,29 +1,29 @@
 /* ==========================================================================
-   BulBana - Sahibinden Temalı Akıllı İlan & Doğrulama Platformu
+   BulBana - Sade, Net & Sahibinden Temalı Akıllı İlan Platformu
    ========================================================================== */
 
 :root {
   --sh-yellow: #FFE800;         /* İkonik Sahibinden Sarısı */
   --sh-yellow-dark: #F5DE00;
-  --sh-navy: #1F2C39;           /* Klasik Sahibinden Koyu Lacivert/Antrasit */
+  --sh-navy: #1F2C39;           /* Klasik Sahibinden Koyu Lacivert */
   --sh-navy-light: #2E3E4E;
-  --sh-blue: #0070BA;           /* Sahibinden Link & Buton Mavisi */
+  --sh-blue: #0070BA;           /* Link & Vurgu Mavisi */
   --sh-blue-hover: #005a96;
-  --sh-gray-bg: #F4F6F8;
+  --sh-bg: #F8FAFC;             /* Sade, Ferah Arka Plan */
   --sh-card-bg: #FFFFFF;
-  --sh-border: #E1E6EB;
-  --sh-text: #2B3E50;
-  --sh-text-muted: #748A9D;
-  --sh-green: #2ECC71;          /* Tescil / Güven Rozet Yeşili */
-  --sh-red: #E74C3C;
+  --sh-border: #E2E8F0;         /* Zarif, İnce Çerçeve */
+  --sh-text: #1E293B;           /* Net, Okunaklı Metin Rengi */
+  --sh-text-muted: #64748B;
+  --sh-green: #10B981;          /* Tescil / Güven Yeşili */
+  --sh-red: #EF4444;
   --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: var(--sh-gray-bg);
+  background-color: var(--sh-bg);
   color: var(--sh-text);
   line-height: 1.5;
   min-height: 100vh;
@@ -32,11 +32,11 @@ body {
 }
 
 /* ==========================================================================
-   Sahibinden Stili Header & Navbar
+   Sade & Net Header
    ========================================================================== */
 .sh-top-header {
   background-color: var(--sh-yellow);
-  padding: 0.6rem 0;
+  padding: 0.65rem 0;
   border-bottom: 2px solid var(--sh-yellow-dark);
 }
 
@@ -45,55 +45,23 @@ body {
   font-weight: 900;
   color: var(--sh-navy) !important;
   text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  letter-spacing: -1px;
-}
-
-.sh-brand-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background-color: var(--sh-yellow);
-  color: #1F2C39;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Arial Black", sans-serif;
-  font-weight: 900;
-  border-radius: 6px;
-  line-height: 1;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
-  border: 1.5px solid #1F2C39;
-}
-
-.sh-brand-badge.badge-sm {
-  width: 24px;
-  height: 24px;
-  font-size: 1rem;
-}
-
-.sh-brand-badge.badge-md {
-  width: 32px;
-  height: 32px;
-  font-size: 1.35rem;
-}
-
-.sh-brand-badge.badge-lg {
-  width: 40px;
-  height: 40px;
-  font-size: 1.75rem;
+  letter-spacing: -1px;
 }
 
 .sh-brand-logo .logo-badge {
   background: var(--sh-navy);
   color: var(--sh-yellow);
-  padding: 0.1rem 0.5rem;
+  padding: 0.05rem 0.45rem;
   border-radius: var(--radius-sm);
   font-size: 1.15rem;
+  margin: 0 1px;
 }
 
 .sh-search-bar {
   border-radius: var(--radius-sm);
-  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   overflow: hidden;
   background: #fff;
   display: flex;
@@ -103,17 +71,18 @@ body {
   border: none;
   outline: none;
   box-shadow: none;
-  font-size: 0.95rem;
-  padding: 0.5rem 0.85rem;
+  font-size: 0.92rem;
+  padding: 0.45rem 0.85rem;
 }
 
 .sh-search-bar button {
   background: var(--sh-navy);
   color: #fff;
   border: none;
-  padding: 0.5rem 1.25rem;
+  padding: 0.45rem 1.25rem;
   font-weight: 700;
-  transition: background 0.2s;
+  font-size: 0.9rem;
+  transition: background 0.15s;
 }
 
 .sh-search-bar button:hover {
@@ -122,14 +91,14 @@ body {
 
 .sh-subnav {
   background-color: var(--sh-navy);
-  padding: 0.4rem 0;
+  padding: 0.35rem 0;
 }
 
 .sh-subnav .nav-link {
-  color: #E1E6EB !important;
-  font-size: 0.9rem;
+  color: #E2E8F0 !important;
+  font-size: 0.88rem;
   font-weight: 600;
-  padding: 0.4rem 0.85rem;
+  padding: 0.35rem 0.75rem;
   border-radius: var(--radius-sm);
 }
 
@@ -139,15 +108,15 @@ body {
 }
 
 /* ==========================================================================
-   Doğruluk & Tescil Rozetleri (Verification)
+   Doğruluk & Tescil Rozetleri (Sade & Net)
    ========================================================================== */
 .sh-badge-verified {
-  background: #E8F8F0;
-  color: #1E824C;
-  border: 1px solid #A3E4D7;
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 0.2rem 0.55rem;
+  padding: 0.2rem 0.5rem;
   border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
@@ -155,9 +124,17 @@ body {
 }
 
 .sh-badge-price-diff {
-  background: #FEF9E7;
-  color: #B7950B;
-  border: 1px solid #F9E79F;
+  background: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
   font-size: 0.75rem;
   font-weight: 700;
   padding: 0.2rem 0.55rem;

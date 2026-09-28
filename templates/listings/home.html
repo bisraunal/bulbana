@@ -1,51 +1,54 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}buldan.com — Sahibinden Akıllı İlan Öneri & Tescil Platformu{% endblock %}
+{% block title %}BulBana — Sahibinden Akıllı İlan & Doğruluk Platformu{% endblock %}
 
 {% block content %}
 <div class="container py-4">
 
-  <!-- Üst Tanıtım Banner'ı -->
+  <!-- 🌟 Sade & Net Hero Alanı -->
   <div class="bg-white border rounded-2 p-4 mb-4 shadow-sm">
-    <div class="row align-items-center g-4">
+    <div class="row align-items-center g-3">
       <div class="col-lg-8">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <span class="badge bg-warning text-dark fw-bold px-2 py-1"><i class="bi bi-stars"></i> YENİ ÖZELLİK</span>
+        <div class="d-inline-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-warning text-dark fw-bold px-2 py-1"><i class="bi bi-robot"></i> AI DESTEKLİ</span>
           <span class="sh-badge-verified"><i class="bi bi-shield-check"></i> %100 Doğrulanmış İlan Verisi</span>
         </div>
-        <h2 class="fw-bold text-dark mb-2">Sahibinden İlanları Arasında Kaybolma!</h2>
-        <p class="text-secondary mb-3">
-          Sağ alttaki <strong>AI Asistan</strong>'a ne aradığını doğrudan yazabilir veya <strong>Arayış Sihirbazı</strong> ile bütçe ve konumunu belirterek en yüksek uyumlu tescilli ilanları tek tıkla bulabilirsin.
+        <h3 class="fw-bold text-dark mb-2">Doğru İlanı, Doğru Fiyata Akıllıca Bulun</h3>
+        <p class="text-secondary small mb-3" style="max-width: 600px;">
+          Bütçenize ve konumunuza en uygun doğrulanmış Sahibinden ilanlarını yapay zeka desteğiyle saniyeler içinde filtreleyin ve karşılaştırın.
         </p>
         <div class="d-flex flex-wrap gap-2">
-          <button class="btn btn-warning fw-bold px-3 py-2 rounded-1 text-dark" onclick="document.getElementById('chatbotToggleBtn').click();">
-            <i class="bi bi-chat-dots-fill me-1"></i> Asistan ile Sohbet Et
+          <button class="btn btn-warning btn-sm fw-bold px-3 py-2 rounded-1 text-dark" onclick="document.getElementById('chatbotToggleBtn').click();">
+            <i class="bi bi-chat-dots-fill me-1"></i> Asistan ile Arama Yap
           </button>
-          <a href="{% url 'create_preference' %}" class="btn btn-outline-dark fw-bold px-3 py-2 rounded-1">
+          <a href="{% url 'create_preference' %}" class="btn btn-outline-dark btn-sm fw-bold px-3 py-2 rounded-1">
             <i class="bi bi-sliders me-1"></i> Kriter Sihirbazı
+          </a>
+          <a href="{% url 'listing_list' %}" class="btn btn-light btn-sm fw-semibold px-3 py-2 rounded-1 border text-secondary">
+            Tüm İlanları Gör
           </a>
         </div>
       </div>
-      <div class="col-lg-4 text-center">
+      <div class="col-lg-4 text-center d-none d-lg-block">
         <div class="p-3 bg-light border rounded-2">
           <div class="text-muted small fw-bold text-uppercase">Tescilli İlan Havuzu</div>
-          <div class="display-6 fw-bold text-dark my-1">{{ total_verified_count }}+ İlan</div>
-          <div class="text-success small fw-semibold"><i class="bi bi-patch-check-fill"></i> Tapu & Ruhsat Kontrollü</div>
+          <div class="h3 fw-bold text-dark my-1">{{ total_verified_count }}+ İlan</div>
+          <div class="text-success small fw-semibold"><i class="bi bi-patch-check-fill"></i> Tapu & Ruhsat Doğrulamalı</div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="row g-4">
-    <!-- Sol Kategori Menüsü (Sahibinden Stili) -->
+    <!-- Sol Kategori Menüsü (Sade & Net) -->
     <div class="col-lg-3 col-md-4">
-      <div class="bg-white border rounded-2 p-3 shadow-sm mb-4">
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Kategoriler</h6>
-        <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+      <div class="bg-white border rounded-2 p-3 shadow-sm mb-3">
+        <div class="fw-bold text-dark border-bottom pb-2 mb-2 small text-uppercase">Kategoriler</div>
+        <ul class="list-unstyled mb-0 d-flex flex-column gap-1 small">
           {% for cat in categories %}
             <li>
-              <a href="{% url 'listing_list' %}?category={{ cat.slug }}" class="text-decoration-none text-dark d-flex justify-content-between align-items-center py-1">
+              <a href="{% url 'listing_list' %}?category={{ cat.slug }}" class="text-decoration-none text-dark d-flex justify-content-between align-items-center py-1 px-2 rounded-1 hover-bg-light">
                 <span><i class="bi {{ cat.icon }} text-warning me-2"></i>{{ cat.name }}</span>
                 <span class="badge bg-light text-muted border">{{ cat.listing_count }}</span>
               </a>
@@ -55,28 +58,27 @@
       </div>
 
       <div class="bg-white border rounded-2 p-3 shadow-sm">
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-shield-lock-fill text-success me-1"></i> Güvenlik & Tescil</h6>
-        <p class="small text-muted mb-2">
-          BulBana üzerindeki her ilan:
-        </p>
-        <ul class="small text-secondary ps-3 mb-0">
-          <li>Tapu & Ruhsat sicilinden tescillenir.</li>
-          <li>Piyasa ortalama fiyatı hesaplanır.</li>
-          <li>Kriterlerine uyum yüzdesi verilir.</li>
+        <div class="fw-bold text-dark border-bottom pb-2 mb-2 small text-uppercase">
+          <i class="bi bi-shield-check text-success me-1"></i> Tescil Standartları
+        </div>
+        <ul class="list-unstyled small text-secondary d-flex flex-column gap-1 mb-0">
+          <li><i class="bi bi-check2 text-success me-1"></i> Tapu ve ruhsat kontrolleri</li>
+          <li><i class="bi bi-check2 text-success me-1"></i> Piyasa fiyat analizi</li>
+          <li><i class="bi bi-check2 text-success me-1"></i> Doğrudan Sahibinden linki</li>
         </ul>
       </div>
     </div>
 
-    <!-- Sağ İlan Vitrini (Sahibinden Stili) -->
+    <!-- Sağ İlan Vitrini -->
     <div class="col-lg-9 col-md-8">
       
       <!-- Vitrin Başlığı -->
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-dark mb-0">
-          <i class="bi bi-award-fill text-warning me-1"></i> Tescilli & Doğrulanmış Vitrin İlanları
-        </h5>
+        <div class="fw-bold text-dark">
+          <i class="bi bi-grid-fill text-warning me-1"></i> Öne Çıkan Tescilli İlanlar
+        </div>
         <a href="{% url 'listing_list' %}" class="small text-primary text-decoration-none fw-bold">
-          Tüm İlanları Gör &rarr;
+          Tümünü Gör &rarr;
         </a>
       </div>
 
@@ -90,7 +92,7 @@
                   <i class="bi {% if item.id in favorite_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
                 </button>
                 {% if item.image_url %}
-                  <img src="{{ item.image_url }}" alt="{{ item.title }}" class="sh-card-img">
+                  <img src="{{ item.image_url }}" alt="{{ item.title }}" class="sh-card-img" loading="lazy">
                 {% else %}
                   <div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted">
                     <i class="bi bi-image fs-1"></i>
@@ -101,7 +103,7 @@
               <div class="p-3 d-flex flex-column flex-grow-1">
                 <div class="sh-card-price mb-1">{{ item.formatted_price }}</div>
                 <a href="{% url 'listing_detail' item.id %}" class="text-decoration-none text-dark">
-                  <div class="fw-bold small mb-2 text-truncate" title="{{ item.title }}">{{ item.title }}</div>
+                  <div class="fw-bold small mb-1 text-truncate" title="{{ item.title }}">{{ item.title }}</div>
                 </a>
 
                 <div class="text-muted small mb-2 d-flex align-items-center gap-1">
@@ -131,3 +133,4 @@
 
 </div>
 {% endblock %}
+

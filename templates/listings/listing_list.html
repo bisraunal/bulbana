@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}İlanlar — buldan.com{% endblock %}
+{% block title %}İlanlar — BulBana{% endblock %}
 
 {% block content %}
 <div class="container py-4">
 
-  <!-- Arama & Filtreleme Üst Barı -->
+  <!-- Arama & Filtreleme Üst Barı (Sade & Net) -->
   <div class="bg-white border rounded-2 p-3 mb-3 shadow-sm">
     <form method="get" class="row g-2 align-items-center">
       {% if selected_category %}
@@ -25,8 +25,8 @@
       <div class="col-lg-2 col-md-6">
         <div class="form-check small mt-1">
           <input class="form-check-input" type="checkbox" name="verified" value="1" id="verifiedOnly" {% if verified_only %}checked{% endif %}>
-          <label class="form-check-label fw-bold text-success" for="verifiedOnly">
-            🛡️ Sadece Tescilliler
+          <label class="form-check-label fw-semibold text-dark" for="verifiedOnly">
+            <span class="text-success"><i class="bi bi-shield-check"></i></span> Sadece Tescilliler
           </label>
         </div>
       </div>
