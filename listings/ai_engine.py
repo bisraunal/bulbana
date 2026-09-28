@@ -66,19 +66,20 @@ def process_chat_message(raw_message, session_data, user=None, session_key=None)
         return {'reply': reply, 'listings': [], 'updated_context': last_context}
 
     # 3. Kriter Tespiti (Yeni Mesaj + Önceki Bağlam Birleştirme)
-    # Kategori / Ürün Türü
+    is_vehicle = any(w in msg_norm for w in ['araba', 'otomobil', 'arac', 'vasita', 'clio', 'polo', 'egea', 'hatchback', 'sedan', 'vites', 'km', 'motor', 'dizel', 'benzin'])
     is_phone = any(w in msg_norm for w in ['telefon', 'cep', 'iphone', 'samsung', 'xiaomi', 'redmi', 'galaxy'])
     is_computer = any(w in msg_norm for w in ['laptop', 'bilgisayar', 'macbook', 'dizustu', 'kasa', 'pc', 'monitör', 'ram', 'ssd'])
-    is_real_estate = any(w in msg_norm for w in ['ev', 'daire', 'kiralik', 'satilik', 'konut', 'bina', 'oda', 'balkon', 'emlak', '1+1', '2+1', '3+1'])
-    is_vehicle = any(w in msg_norm for w in ['araba', 'otomobil', 'arac', 'vasita', 'clio', 'polo', 'egea', 'hatchback', 'sedan', 'vites', 'km', 'motor', 'dizel', 'benzin'])
+    is_real_estate = any(w in msg_norm for w in ['ev', 'daire', 'konut', 'bina', 'oda', 'balkon', 'emlak', '1+1', '2+1', '3+1', 'villa', 'arsa']) or (
+        ('kiralik' in msg_norm or 'satilik' in msg_norm) and not (is_vehicle or is_phone or is_computer)
+    )
     is_budget_friendly = any(w in msg_norm for w in ['uygun', 'ucuz', 'hesapli', 'ekonomik', 'butce', 'firsat', 'ogrenci'])
 
     # Eğer bu mesajda kategori yoksa önceki bağlamı koru
     current_category = None
-    if is_phone: current_category = 'phone'
+    if is_vehicle: current_category = 'vehicle'
+    elif is_phone: current_category = 'phone'
     elif is_computer: current_category = 'computer'
     elif is_real_estate: current_category = 'real_estate'
-    elif is_vehicle: current_category = 'vehicle'
     else: current_category = last_context.get('category')
 
     # Bütçe Tespiti

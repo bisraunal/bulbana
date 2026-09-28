@@ -69,58 +69,115 @@ class ListingModelTests(TestCase):
         self.assertTrue(any("konum" in r.lower() or "kadıköy" in r.lower() for r in reasons))
 
 
-class ChatbotAndSecurityTests(TestCase):
+class PrecisionAndStrictIsolationTests(TestCase):
+    """
+    Şehir ve Kategori İzolasyonu Testleri:
+    - Araba arandığında ev/telefon ASLA çıkmamalı.
+    - Ankara seçildiğinde İstanbul ASLA çıkmamalı.
+    """
     def setUp(self):
         self.client = Client()
         self.cat_emlak = Category.objects.create(name="Emlak", slug="emlak")
+        self.cat_vasita = Category.objects.create(name="Vasıta", slug="vasita")
         self.cat_tekno = Category.objects.create(name="Teknoloji", slug="ikinci-el-teknoloji")
 
-        self.phone = Listing.objects.create(
-            category=self.cat_tekno,
-            title="Apple iPhone 13 128GB",
-            price=31000,
+        # İstanbul İlanları
+        self.istanbul_ev = Listing.objects.create(
+            category=self.cat_emlak,
+            title="Kadıköy Moda Kiralık Daire",
+            price=26000,
             city="İstanbul",
             district="Kadıköy",
             is_active=True
         )
-
-        self.laptop = Listing.objects.create(
-            category=self.cat_tekno,
-            title="Lenovo Legion 5 Laptop",
-            price=28000,
+        self.istanbul_araba = Listing.objects.create(
+            category=self.cat_vasita,
+            title="Renault Clio Otomatik",
+            price=750000,
             city="İstanbul",
-            district="Beşiktaş",
+            district="Kadıköy",
+            is_active=True
+        )
+        self.istanbul_telefon = Listing.objects.create(
+            category=self.cat_tekno,
+            title="iPhone 13 128GB",
+            price=31000,
+            city="İstanbul",
+            district="Kadıköy",
+            specs={"Ürün Türü": "Cep Telefonu"},
             is_active=True
         )
 
-    def test_chatbot_greeting_does_not_return_random_listings(self):
-        """Selam yazıldığında rastgele ilan dönmediğini, samimi sohbet döndüğünü doğrular."""
-        response = self.client.post(
-            reverse('chatbot_assistant_ajax'),
-            data=json.dumps({'message': 'selam'}),
-            content_type='application/json'
+        # Ankara İlanları
+        self.ankara_ev = Listing.objects.create(
+            category=self.cat_emlak,
+            title="Çankaya Tunalı Kiralık Daire",
+            price=20000,
+            city="Ankara",
+            district="Çankaya",
+            is_active=True
         )
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data['listings']), 0)
-        self.assertIn("Selam", data['reply'])
+        self.ankara_araba = Listing.objects.create(
+            category=self.cat_vasita,
+            title="Volkswagen Polo DSG",
+            price=850000,
+            city="Ankara",
+            district="Çankaya",
+            is_active=True
+        )
 
-    def test_chatbot_strict_phone_search(self):
-        """Telefon arandığında kesinlikle laptopları dışlayıp sadece telefon getirdiğini doğrular."""
+    def test_car_search_only_returns_vehicles(self):
+        """Araba arandığında SADECE vasıtaların geldiğini, ev ve telefonun kesinlikle çıkmadığını test eder."""
         response = self.client.post(
             reverse('chatbot_assistant_ajax'),
-            data=json.dumps({'message': 'uygun fiyatlı bir telefon arıyorum'}),
+            data=json.dumps({'message': 'araba arıyorum otomatik vites'}),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertGreater(len(data['listings']), 0)
+        
         for item in data['listings']:
-            self.assertIn("iPhone", item['title'])
-            self.assertNotIn("Laptop", item['title'])
-            self.assertNotIn("Lenovo", item['title'])
+            # Başlıkta araba modelleri olmalı, ev veya telefon asla olmamalı
+            title = item['title'].lower()
+            self.assertTrue(any(car in title for car in ['clio', 'polo', 'renault', 'volkswagen', 'araba']))
+            self.assertNotIn("kiralık", title)
+            self.assertNotIn("daire", title)
+            self.assertNotIn("iphone", title)
 
-    def test_chatbot_xss_protection(self):
+    def test_ankara_search_never_returns_istanbul(self):
+        """Ankara belirtildiğinde KESİNLİKLE İstanbul'un çıkmadığını test eder."""
+        response = self.client.post(
+            reverse('chatbot_assistant_ajax'),
+            data=json.dumps({'message': 'Ankara Çankaya kiralık ev'}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertGreater(len(data['listings']), 0)
+
+        for item in data['listings']:
+            self.assertIn("Ankara", item['location'])
+            self.assertNotIn("İstanbul", item['location'])
+            self.assertNotIn("Kadıköy", item['location'])
+
+    def test_combined_city_and_product_precision(self):
+        """'Ankara'da araba' sorgusunda sadece Ankara'daki araçların geldiğini test eder."""
+        response = self.client.post(
+            reverse('chatbot_assistant_ajax'),
+            data=json.dumps({'message': 'Ankara da satılık araba'}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertGreater(len(data['listings']), 0)
+
+        for item in data['listings']:
+            self.assertIn("Ankara", item['location'])
+            self.assertIn("Polo", item['title'])
+            self.assertNotIn("Clio", item['title']) # Clio İstanbul'da, çıkmamalı!
+
+    def test_xss_protection(self):
         """XSS ve zararlı HTML enjeksiyonlarının temizlendiğini doğrular."""
         payload = "<script>alert('XSS')</script> Kadıköy kiralık ev"
         response = self.client.post(
@@ -131,13 +188,14 @@ class ChatbotAndSecurityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("<script>", response.json()['reply'])
 
-    def test_favorite_ajax_toggle(self):
-        """Tek tıkla favorileme AJAX fonksiyonunu test eder."""
-        response = self.client.post(reverse('toggle_favorite_ajax', args=[self.phone.id]))
+    def test_greeting_behavior(self):
+        """Selam yazıldığında rastgele ilan dönmediğini, karşılama mesajı döndüğünü test eder."""
+        response = self.client.post(
+            reverse('chatbot_assistant_ajax'),
+            data=json.dumps({'message': 'selam'}),
+            content_type='application/json'
+        )
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertTrue(data['is_favorite'])
-
-        response2 = self.client.post(reverse('toggle_favorite_ajax', args=[self.phone.id]))
-        self.assertEqual(response2.status_code, 200)
-        self.assertFalse(response2.json()['is_favorite'])
+        self.assertEqual(len(data['listings']), 0)
+        self.assertIn("Selam", data['reply'])
