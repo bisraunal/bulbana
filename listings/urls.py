@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/listings/<int:listing_id>/negotiation-offer/', views.ai_generate_negotiation_ajax_view, name='ai_generate_negotiation_ajax'),
     path('api/listings/compare/', views.ai_compare_listings_ajax_view, name='ai_compare_listings_ajax'),
     path('api/chatbot/', views.chatbot_assistant_ajax_view, name='chatbot_assistant_ajax'),
+    path('api/chatbot/feedback/', views.chatbot_feedback_ajax_view, name='chatbot_feedback_ajax'),
 ]

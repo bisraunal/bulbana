@@ -47,8 +47,40 @@ body {
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
   letter-spacing: -1px;
+}
+
+.sh-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--sh-yellow);
+  color: #1F2C39;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Arial Black", sans-serif;
+  font-weight: 900;
+  border-radius: 6px;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  border: 1.5px solid #1F2C39;
+}
+
+.sh-brand-badge.badge-sm {
+  width: 24px;
+  height: 24px;
+  font-size: 1rem;
+}
+
+.sh-brand-badge.badge-md {
+  width: 32px;
+  height: 32px;
+  font-size: 1.35rem;
+}
+
+.sh-brand-badge.badge-lg {
+  width: 40px;
+  height: 40px;
+  font-size: 1.75rem;
 }
 
 .sh-brand-logo .logo-badge {
@@ -348,3 +380,48 @@ body {
   background: #fff;
   border-top: 1px solid var(--sh-border);
 }
+
+/* Chatbot Yanıt Puanlama (👍 / 👎) */
+.chat-feedback-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.btn-feedback {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+}
+
+.btn-feedback:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.btn-feedback.active-positive {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border-color: #86efac !important;
+}
+
+.btn-feedback.active-negative {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border-color: #fca5a5 !important;
+}
+

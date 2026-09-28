@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Count
 from django.contrib import messages
-from .models import Category, Listing, UserPreference, ListingInteraction
+from .models import Category, Listing, UserPreference, ListingInteraction, ChatbotFeedback
 from .forms import UserPreferenceForm, QuickSearchForm
 from .ai_engine import process_chat_message, generate_negotiation_advice, compare_listings_ai
 
@@ -335,4 +335,39 @@ def ai_generate_negotiation_ajax_view(request, listing_id):
         'status': 'success',
         'data': advice
     })
+
+
+@require_POST
+def chatbot_feedback_ajax_view(request):
+    """
+    👍 / 👎 Chatbot Cevap Puanlama & Geri Bildirim Endpoint'i
+    """
+    session_key = _get_session_key(request)
+    user = request.user if request.user.is_authenticated else None
+
+    try:
+        body = json.loads(request.body.decode('utf-8')) if request.body else {}
+        feedback_type = body.get('feedback', '').strip()
+        user_query = body.get('user_query', '').strip()
+        bot_reply = body.get('bot_reply', '').strip()
+    except Exception:
+        return HttpResponseBadRequest("Geçersiz JSON verisi.")
+
+    if feedback_type not in ['positive', 'negative']:
+        return JsonResponse({'error': 'Geçersiz geri bildirim türü.'}, status=400)
+
+    feedback = ChatbotFeedback.objects.create(
+        user=user,
+        session_key=session_key if not user else None,
+        feedback_type=feedback_type,
+        user_query=user_query,
+        bot_reply=bot_reply
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Geri bildiriminiz için teşekkürler! ⭐',
+        'id': feedback.id
+    })
+
 

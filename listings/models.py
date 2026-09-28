@@ -215,3 +215,26 @@ class ListingInteraction(models.Model):
                 name='unique_session_listing_action'
             ),
         ]
+
+
+class ChatbotFeedback(models.Model):
+    FEEDBACK_CHOICES = [
+        ('positive', 'Faydalı Buldum (👍)'),
+        ('negative', 'Yetersiz/Hatalı (👎)'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="chatbot_feedbacks", verbose_name="Kullanıcı")
+    session_key = models.CharField(max_length=100, null=True, blank=True, verbose_name="Misafir Oturumu")
+    feedback_type = models.CharField(max_length=10, choices=FEEDBACK_CHOICES, verbose_name="Geri Bildirim")
+    user_query = models.TextField(blank=True, default='', verbose_name="Kullanıcı Sorusu")
+    bot_reply = models.TextField(blank=True, default='', verbose_name="Bot Cevabı")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Tarih")
+
+    class Meta:
+        verbose_name = "Chatbot Geri Bildirimi"
+        verbose_name_plural = "Chatbot Geri Bildirimleri"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_feedback_type_display()} - {self.created_at.strftime('%d.%m.%Y %H:%M')}"
+

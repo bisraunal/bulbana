@@ -228,3 +228,20 @@ class PrecisionAndStrictIsolationTests(TestCase):
         self.assertIn('verdict', data['data'])
         self.assertEqual(len(data['data']['items']), 2)
 
+    def test_chatbot_feedback_endpoint(self):
+        """👍 / 👎 Chatbot geri bildirim kaydını test eder."""
+        response = self.client.post(
+            reverse('chatbot_feedback_ajax'),
+            data=json.dumps({
+                'feedback': 'positive',
+                'user_query': 'Kadıköy ev',
+                'bot_reply': 'Senin için 3 ilan buldum.'
+            }),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertIn('Geri bildiriminiz için teşekkürler', data['message'])
+
+

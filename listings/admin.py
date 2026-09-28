@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Listing, UserPreference, ListingInteraction
+from .models import Category, Listing, UserPreference, ListingInteraction, ChatbotFeedback
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -27,3 +27,11 @@ class UserPreferenceAdmin(admin.ModelAdmin):
 class ListingInteractionAdmin(admin.ModelAdmin):
     list_display = ('listing', 'user', 'session_key', 'action_type', 'created_at')
     list_filter = ('action_type', 'created_at')
+
+
+@admin.register(ChatbotFeedback)
+class ChatbotFeedbackAdmin(admin.ModelAdmin):
+    list_display = ('feedback_type', 'user', 'session_key', 'user_query', 'created_at')
+    list_filter = ('feedback_type', 'created_at')
+    search_fields = ('user_query', 'bot_reply')
+

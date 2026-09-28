@@ -78,6 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (voiceBtn) voiceBtn.style.display = 'none';
   }
 
+  let lastUserQuery = '';
+
   // Mesaj Ekleme
   const appendMessage = (text, isUser = false, listings = []) => {
     const msgDiv = document.createElement('div');
@@ -118,6 +120,53 @@ document.addEventListener('DOMContentLoaded', () => {
       msgDiv.appendChild(cardsWrap);
     }
 
+    // Bot mesajları için 👍 / 👎 Geri Bildirim Butonları
+    if (!isUser) {
+      const feedbackWrap = document.createElement('div');
+      feedbackWrap.className = 'chat-feedback-wrap';
+      feedbackWrap.innerHTML = `
+        <span class="text-muted" style="font-size:0.68rem;">Faydalı oldu mu?</span>
+        <button type="button" class="btn-feedback btn-fb-up" title="Faydalı buldum">
+          👍 Evet
+        </button>
+        <button type="button" class="btn-feedback btn-fb-down" title="Yetersiz veya hatalı">
+          👎 Hayır
+        </button>
+      `;
+
+      const btnUp = feedbackWrap.querySelector('.btn-fb-up');
+      const btnDown = feedbackWrap.querySelector('.btn-fb-down');
+
+      const sendFeedback = async (type, btnActive, btnInactive) => {
+        btnActive.classList.add(type === 'positive' ? 'active-positive' : 'active-negative');
+        btnInactive.disabled = true;
+        btnActive.disabled = true;
+        btnActive.innerHTML = type === 'positive' ? '👍 Teşekkürler!' : '👎 Kaydedildi';
+
+        try {
+          await fetch('/api/chatbot/feedback/', {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': getCsrfToken(),
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              feedback: type,
+              user_query: lastUserQuery,
+              bot_reply: text
+            })
+          });
+        } catch (e) {
+          console.error('Feedback send error:', e);
+        }
+      };
+
+      btnUp.addEventListener('click', () => sendFeedback('positive', btnUp, btnDown));
+      btnDown.addEventListener('click', () => sendFeedback('negative', btnDown, btnUp));
+
+      msgDiv.appendChild(feedbackWrap);
+    }
+
     chatBody.appendChild(msgDiv);
     chatBody.scrollTop = chatBody.scrollHeight;
   };
@@ -128,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userText = chatInput.value.trim();
     if (!userText) return;
 
+    lastUserQuery = userText;
     appendMessage(userText, true);
     chatInput.value = '';
 
@@ -165,3 +215,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
