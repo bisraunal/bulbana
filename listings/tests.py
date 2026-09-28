@@ -199,3 +199,32 @@ class PrecisionAndStrictIsolationTests(TestCase):
         data = response.json()
         self.assertEqual(len(data['listings']), 0)
         self.assertIn("Selam", data['reply'])
+
+    def test_ai_negotiation_offers(self):
+        """AI Pazarlık mesajı oluşturucunun 3 farklı tonda teklif ve taktik ürettiğini doğrular."""
+        response = self.client.post(
+            reverse('ai_generate_negotiation_ajax', args=[self.istanbul_araba.id]),
+            data=json.dumps({'target_price': 700000}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(len(data['data']['offers']), 3)
+        self.assertIn("700.000 TL", data['data']['offers'][0]['text'])
+        self.assertGreater(len(data['data']['tactics']), 0)
+
+    def test_ai_comparison_endpoint(self):
+        """2 ilanı karşılaştırıp Fiyat/Performans galibini belirlediğini doğrular."""
+        response = self.client.post(
+            reverse('ai_compare_listings_ajax'),
+            data=json.dumps({'listing_ids': [self.istanbul_araba.id, self.ankara_araba.id]}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertIn('winner_id', data['data'])
+        self.assertIn('verdict', data['data'])
+        self.assertEqual(len(data['data']['items']), 2)
+

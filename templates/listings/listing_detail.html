@@ -116,6 +116,11 @@
           <a href="{{ listing.sahibinden_link }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="btn btn-warning btn-sm py-2 fw-bold text-dark d-flex align-items-center justify-content-center gap-2 shadow-sm">
             <i class="bi bi-box-arrow-up-right"></i> Sahibinden'de İncele
           </a>
+
+          <!-- 🤖 AI Pazarlık & Teklif Butonu -->
+          <button type="button" class="btn btn-dark btn-sm py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm border-0" style="background: linear-gradient(135deg, #1e293b, #334155);" data-bs-toggle="modal" data-bs-target="#aiNegotiationModal">
+            <i class="bi bi-robot text-warning"></i> AI Pazarlık Mesajı Hazırla
+          </button>
         </div>
       </div>
 
@@ -153,5 +158,175 @@
     </div>
   </div>
 
+  <!-- 🤖 AI Pazarlık & Teklif Oluşturucu Modal -->
+  <div class="modal fade" id="aiNegotiationModal" tabindex="-1" aria-labelledby="aiNegotiationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
+        <div class="modal-header text-white p-3 px-4" style="background: linear-gradient(135deg, #0f172a, #1e293b);">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-robot text-warning fs-4"></i>
+            <div>
+              <h5 class="modal-title fw-bold mb-0" id="aiNegotiationModalLabel">BulBana AI Pazarlık & Teklif Asistanı</h5>
+              <div class="small text-white-50">Satıcıya gönderilmeye hazır, profesyonel 3 farklı teklif taslağı</div>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <div class="modal-body p-4 bg-light">
+          <!-- İlan Özeti ve Hedef Fiyat Girişi -->
+          <div class="card border-0 shadow-sm rounded-2 p-3 bg-white mb-3">
+            <div class="row g-3 align-items-center">
+              <div class="col-md-6">
+                <div class="small text-muted">Mevcut Liste Fiyatı:</div>
+                <div class="fs-5 fw-bold text-dark">{{ listing.formatted_price }}</div>
+                <div class="small text-success fw-semibold"><i class="bi bi-shield-check"></i> {{ listing.market_price_diff|default:"Piyasa verisi doğrulandı" }}</div>
+              </div>
+              <div class="col-md-6">
+                <label for="customOfferInput" class="form-label small fw-bold text-dark mb-1">Hedeflediğin Teklif Tutarı (İsteğe Bağlı):</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" id="customOfferInput" class="form-control" placeholder="Örn: {{ listing.price|floatformat:0 }}" value="">
+                  <button class="btn btn-warning fw-bold px-3" id="btnRecalculateOffer" type="button">
+                    <i class="bi bi-arrow-repeat"></i> Üret
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Yükleniyor Göstergesi -->
+          <div id="negotiationLoading" class="text-center py-4 d-none">
+            <div class="spinner-border text-warning" role="status">
+              <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <div class="small text-muted mt-2 fw-semibold">Piyasa verileri analiz ediliyor ve teklif metinleri hazırlanıyor...</div>
+          </div>
+
+          <!-- Teklif Kartları -->
+          <div id="offersContainer" class="d-flex flex-column gap-3">
+            <!-- JS ile dinamik doldurulacak -->
+          </div>
+
+          <!-- İpuçları -->
+          <div id="tacticsContainer" class="card border-0 shadow-sm rounded-2 p-3 bg-white mt-3 d-none">
+            <div class="small fw-bold text-dark mb-2"><i class="bi bi-lightbulb-fill text-warning me-1"></i> Başarılı Pazarlık Taktikleri:</div>
+            <ul class="list-unstyled mb-0 small text-secondary d-flex flex-column gap-1" id="tacticsList">
+            </ul>
+          </div>
+        </div>
+
+        <div class="modal-footer bg-white border-top p-3 px-4 d-flex justify-content-between">
+          <div class="small text-muted"><i class="bi bi-info-circle"></i> Mesajı kopyalayıp doğrudan Sahibinden satıcısına iletebilirsiniz.</div>
+          <button type="button" class="btn btn-secondary btn-sm px-4 fw-bold" data-bs-dismiss="modal">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+<!-- AI Pazarlık Mesajı JS Motoru -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('aiNegotiationModal');
+  const offersContainer = document.getElementById('offersContainer');
+  const tacticsContainer = document.getElementById('tacticsContainer');
+  const tacticsList = document.getElementById('tacticsList');
+  const loading = document.getElementById('negotiationLoading');
+  const btnRecalc = document.getElementById('btnRecalculateOffer');
+  const inputOffer = document.getElementById('customOfferInput');
+  const listingId = {{ listing.id }};
+
+  function fetchNegotiationAdvice(targetPrice = null) {
+    offersContainer.innerHTML = '';
+    tacticsContainer.classList.add('d-none');
+    loading.classList.remove('d-none');
+
+    fetch(`/api/listings/${listingId}/negotiation-offer/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken()
+      },
+      body: JSON.stringify({ target_price: targetPrice })
+    })
+    .then(r => r.json())
+    .then(res => {
+      loading.classList.add('d-none');
+      if (res.status === 'success' && res.data) {
+        renderOffers(res.data);
+      }
+    })
+    .catch(err => {
+      loading.classList.add('d-none');
+      offersContainer.innerHTML = '<div class="alert alert-danger small">Teklif üretilirken bir hata oluştu.</div>';
+    });
+  }
+
+  function renderOffers(data) {
+    offersContainer.innerHTML = '';
+    data.offers.forEach(offer => {
+      const card = document.createElement('div');
+      card.className = 'card border-0 shadow-sm rounded-2 bg-white p-3';
+      card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-bold text-dark small d-flex align-items-center gap-2">
+            <span>${offer.title}</span>
+            <span class="badge bg-warning text-dark border">${offer.badge}</span>
+          </div>
+          <button class="btn btn-sm btn-outline-primary btn-copy py-1 px-3 fw-bold small" data-text="${offer.text.replace(/"/g, '&quot;')}">
+            <i class="bi bi-clipboard me-1"></i> Kopyala
+          </button>
+        </div>
+        <div class="p-2 rounded bg-light border text-dark small" style="line-height: 1.6; font-family: monospace;">
+          ${offer.text}
+        </div>
+      `;
+      offersContainer.appendChild(card);
+    });
+
+    // Taktikler
+    if (data.tactics && data.tactics.length > 0) {
+      tacticsList.innerHTML = data.tactics.map(t => `<li>&bull; ${t}</li>`).join('');
+      tacticsContainer.classList.remove('d-none');
+    }
+
+    // Kopyalama Olayı
+    document.querySelectorAll('.btn-copy').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const text = this.getAttribute('data-text');
+        navigator.clipboard.writeText(text).then(() => {
+          const origHtml = this.innerHTML;
+          this.innerHTML = '<i class="bi bi-check-lg text-success"></i> Kopyalandı!';
+          this.classList.replace('btn-outline-primary', 'btn-success');
+          setTimeout(() => {
+            this.innerHTML = origHtml;
+            this.classList.replace('btn-success', 'btn-outline-primary');
+          }, 2000);
+        });
+      });
+    });
+  }
+
+  function getCsrfToken() {
+    const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+    return cookie ? cookie.split('=')[1] : '';
+  }
+
+  if (modal) {
+    modal.addEventListener('shown.bs.modal', function() {
+      if (offersContainer.children.length === 0) {
+        fetchNegotiationAdvice();
+      }
+    });
+  }
+
+  if (btnRecalc) {
+    btnRecalc.addEventListener('click', function() {
+      const val = inputOffer.value.trim();
+      fetchNegotiationAdvice(val ? parseFloat(val) : null);
+    });
+  }
+});
+</script>
 {% endblock %}

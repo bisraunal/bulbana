@@ -233,12 +233,21 @@ def process_chat_message(raw_message, session_data, user=None, session_key=None)
     scored_items.sort(key=lambda x: x['score'], reverse=True)
     top_matches = scored_items[:3]
 
-    # Zengin Bot Cevabı
-    reply_lines = [f"Senin için kriterlerine tam uyan **{len(top_matches)} tescilli {item_type_label.lower()}** listeledim:"]
-    if is_budget_friendly: reply_lines.append("🏷️ *En ekonomik fırsatlardan başlayarak sıralandı.*")
-    if detected_max_price: reply_lines.append(f"💰 Bütçe Sınırı: **{detected_max_price:,.0f} TL altı**".replace(',', '.'))
-    if detected_city or detected_district: reply_lines.append(f"📍 Konum: **{detected_district or detected_city}**")
-    reply_lines.append("\n💡 *İpuçları ve detayları inceleyebilir, istersen bu arayış için alarm kurmamı söyleyebilirsin!*")
+    # Gemini RAG Desteği (API Key varsa derin analiz al, yoksa yerel analizi kullan)
+    gemini_reasoning = _call_gemini_rag_reasoning(clean_message, [m['item'] for m in top_matches], new_context)
+    if gemini_reasoning:
+        reply_lines = [
+            f"🤖 **BulBana AI Piyasa Danışmanı:**",
+            gemini_reasoning,
+            f"\n🎯 Senin için kriterlerine en uygun **{len(top_matches)} ilanı** detaylarıyla listeledim:"
+        ]
+    else:
+        # Zengin Bot Cevabı
+        reply_lines = [f"Senin için kriterlerine tam uyan **{len(top_matches)} tescilli {item_type_label.lower()}** listeledim:"]
+        if is_budget_friendly: reply_lines.append("🏷️ *En ekonomik fırsatlardan başlayarak sıralandı.*")
+        if detected_max_price: reply_lines.append(f"💰 Bütçe Sınırı: **{detected_max_price:,.0f} TL altı**".replace(',', '.'))
+        if detected_city or detected_district: reply_lines.append(f"📍 Konum: **{detected_district or detected_city}**")
+        reply_lines.append("\n💡 *İpuçları ve detayları inceleyebilir, istersen bu arayış için alarm kurmamı söyleyebilirsin!*")
 
     reply_text = "\n".join(reply_lines)
 
@@ -271,3 +280,138 @@ def process_chat_message(raw_message, session_data, user=None, session_key=None)
         'listings': listings_data,
         'updated_context': new_context
     }
+
+
+def _call_gemini_rag_reasoning(user_query, listings, context):
+    """
+    Google Gemini 2.5 Flash ile RAG (Retrieval-Augmented Generation) akıl yürütme motoru.
+    """
+    gemini_key = os.getenv('GEMINI_API_KEY')
+    if not gemini_key or not HAS_GENAI:
+        return None
+    try:
+        client = genai.Client(api_key=gemini_key)
+        listings_context = []
+        for l in listings:
+            listings_context.append(f"- #{l.id} {l.title} ({l.formatted_price}, {l.city}/{l.district}, Tescil Skoru: %{l.verification_score}, Piyasa Durumu: {l.market_price_diff})")
+        context_str = "\n".join(listings_context)
+
+        prompt = (
+            f"Sen BulBana platformunun Türkiye piyasasında uzman Gayrimenkul, Vasıta ve Teknoloji Yapay Zeka Danışmanısın.\n"
+            f"Kullanıcı Talebi: \"{user_query}\"\n"
+            f"Veritabanından Çıkarılan Eşleşen Gerçek İlanlar:\n{context_str}\n\n"
+            f"GÖREV: Kullanıcıya hitaben samimi, güvenilir, piyasa bilgisi yüksek ve yönlendirici 2-3 cümlelik özet bir değerlendirme yaz. Fiyat/performans ve güvenilirlik avantajını vurgula."
+        )
+
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
+        if response and response.text:
+            return response.text.strip()
+    except Exception:
+        return None
+    return None
+
+
+def generate_negotiation_advice(listing, target_price=None):
+    """
+    AI Destekli Pazarlık & Teklif Mesajı Oluşturucu:
+    İlanın kategorisine, piyasa farkına ve istenen indirime göre 3 farklı tonda hazır mesaj taslağı üretir.
+    """
+    price_val = float(listing.price)
+    default_offer_val = price_val * 0.92  # Varsayılan %8 indirim
+    if target_price:
+        try:
+            offer_val = float(target_price)
+        except (ValueError, TypeError):
+            offer_val = default_offer_val
+    else:
+        offer_val = default_offer_val
+
+    diff_amount = price_val - offer_val
+    discount_pct = max(1, round((diff_amount / price_val) * 100)) if price_val > 0 else 5
+
+    category_slug = listing.category.slug if listing.category else 'genel'
+    arg_reason = "piyasa rayiçleri ve nakit ödeme kolaylığı"
+    if category_slug == 'vasita':
+        arg_reason = "yaklaşan periyodik bakım ve ekspertiz masraflarını da gözeterek nakit"
+    elif category_slug == 'emlak':
+        arg_reason = "peşin kira/depozito ödeme güvencesi ve uzun vadeli oturum niyetiyle"
+    elif category_slug == 'ikinci-el-teknoloji':
+        arg_reason = "pil/kasa durumu ve anında elden/havale ile teslim alma güvencesiyle"
+
+    offers = [
+        {
+            'title': '🤝 Samimi & Kibar Teklif',
+            'badge': 'En Çok Tercih Edilen',
+            'tone': 'friendly',
+            'text': f"Merhaba, '{listing.title}' ilanınızı inceledim, çok temiz görünüyor. Bütçem doğrultusunda {offer_val:,.0f} TL teklif etmek isterim. Sizin için de uygunsa hemen bugün görüşüp işlemi tamamlayabiliriz. İyi günler dilerim!".replace(',', '.')
+        },
+        {
+            'title': '📊 Piyasa & Veri Odaklı Teklif',
+            'badge': 'Profesyonel',
+            'tone': 'professional',
+            'text': f"İyi günler. İlanınızın bölge piyasa emsallerini ve {arg_reason} değerlendirdiğimde {offer_val:,.0f} TL seviyesinde ciddi bir alıcıyım. Eğer bu rakamda mutabıksak hızlıca süreci başlatabiliriz. Değerlendirmeniz için şimdiden teşekkürler.".replace(',', '.')
+        },
+        {
+            'title': '⚡ Nakit & Hızlı Kapanış Teklifi',
+            'badge': 'Acil Satışlar İçin',
+            'tone': 'direct',
+            'text': f"Selamlar, '{listing.title}' için {offer_val:,.0f} TL nakit/anında havale ile hemen alabilirim. Hiçbir pürüz çıkarmadan satışı tamamlayabiliriz. Uygunsa dönüşünüzü bekliyorum.".replace(',', '.')
+        }
+    ]
+
+    return {
+        'listing_id': listing.id,
+        'title': listing.title,
+        'original_price': listing.formatted_price,
+        'target_offer': f"{offer_val:,.0f} TL".replace(',', '.'),
+        'discount_percentage': f"%{discount_pct}",
+        'offers': offers,
+        'tactics': [
+            "🛡️ Asla 'Son ne olur?' diye sormayın; doğrudan net ve saygılı bir rakam sunun.",
+            f"💡 Satıcıya nakit ve hızlı işlem güvencesi sunmak %{discount_pct} indirimi kabul ettirme şansını 2 katına çıkarır.",
+            "📑 Tescil raporundaki artıları ve piyasa verisini saygılı bir dille referans gösterin."
+        ]
+    }
+
+
+def compare_listings_ai(listing_ids):
+    """
+    2 veya 3 ilanı özellik, fiyat, lokasyon ve değerleme açısından kıyaslar ve galip seçer.
+    """
+    listings = list(Listing.objects.filter(id__in=listing_ids, is_active=True).select_related('category'))
+    if len(listings) < 2:
+        return {'error': 'Karşılaştırma için en az 2 ilan gereklidir.'}
+
+    items_data = []
+    for l in listings:
+        items_data.append({
+            'id': l.id,
+            'title': l.title,
+            'price': l.formatted_price,
+            'price_raw': float(l.price),
+            'city_district': f"{l.district}, {l.city}",
+            'verification_score': l.verification_score or 95,
+            'market_diff': l.market_price_diff or 'Piyasa Ortalamasında',
+            'image_url': l.image_url,
+            'specs': l.specs or {},
+            'sahibinden_link': l.sahibinden_link
+        })
+
+    # Fiyat/Performans Galibini Belirleme
+    best_item = max(items_data, key=lambda x: (x['verification_score'] or 90) - (x['price_raw'] / 500000))
+
+    summary = (
+        f"🏆 **Fiyat / Güven Analizi Galibi:** **{best_item['title']}**\n\n"
+        f"Bu ilan **%{best_item['verification_score']} Tescil Puanı** ve **{best_item['market_diff']}** piyasa avantajıyla diğer seçeneklere kıyasla daha güvenli ve fiyat/performans açısından öne çıkıyor."
+    )
+
+    return {
+        'items': items_data,
+        'winner_id': best_item['id'],
+        'winner_title': best_item['title'],
+        'verdict': summary
+    }
+

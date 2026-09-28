@@ -8,5 +8,7 @@ urlpatterns = [
     path('recommendations/', views.recommendations_view, name='recommendations'),
     path('preference/new/', views.create_preference_view, name='create_preference'),
     path('api/listings/<int:listing_id>/favorite/', views.toggle_favorite_ajax_view, name='toggle_favorite_ajax'),
+    path('api/listings/<int:listing_id>/negotiation-offer/', views.ai_generate_negotiation_ajax_view, name='ai_generate_negotiation_ajax'),
+    path('api/listings/compare/', views.ai_compare_listings_ajax_view, name='ai_compare_listings_ajax'),
     path('api/chatbot/', views.chatbot_assistant_ajax_view, name='chatbot_assistant_ajax'),
 ]

@@ -7,7 +7,7 @@ from django.db.models import Q, Count
 from django.contrib import messages
 from .models import Category, Listing, UserPreference, ListingInteraction
 from .forms import UserPreferenceForm, QuickSearchForm
-from .ai_engine import process_chat_message
+from .ai_engine import process_chat_message, generate_negotiation_advice, compare_listings_ai
 
 _CHAT_RATE_LIMIT = {}
 
@@ -292,3 +292,47 @@ def chatbot_assistant_ajax_view(request):
         'reply': result['reply'],
         'listings': result['listings']
     })
+
+
+@require_POST
+def ai_compare_listings_ajax_view(request):
+    """
+    ⚖️ İKİ VEYA ÜÇ İLANI YAPAY ZEKA İLE KARŞILAŞTIRMA ENDPOINT'İ
+    """
+    try:
+        body = json.loads(request.body.decode('utf-8'))
+        listing_ids = body.get('listing_ids', [])
+    except Exception:
+        return HttpResponseBadRequest("Geçersiz JSON verisi.")
+
+    if not listing_ids or len(listing_ids) < 2:
+        return JsonResponse({'error': 'Karşılaştırma için en az 2 ilan seçmelisiniz.'}, status=400)
+
+    result = compare_listings_ai(listing_ids[:3])
+    if 'error' in result:
+        return JsonResponse({'error': result['error']}, status=400)
+
+    return JsonResponse({
+        'status': 'success',
+        'data': result
+    })
+
+
+@require_POST
+def ai_generate_negotiation_ajax_view(request, listing_id):
+    """
+    💬 İLAN ÖZELİNDE AI DESTEKLİ PAZARLIK & TEKLİF MESAJI OLUŞTURUCU
+    """
+    listing = get_object_or_404(Listing, id=listing_id)
+    try:
+        body = json.loads(request.body.decode('utf-8')) if request.body else {}
+        target_price = body.get('target_price')
+    except Exception:
+        target_price = None
+
+    advice = generate_negotiation_advice(listing, target_price=target_price)
+    return JsonResponse({
+        'status': 'success',
+        'data': advice
+    })
+
