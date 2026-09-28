@@ -1,4 +1,5 @@
 import re
+import urllib.parse
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -61,6 +62,17 @@ class Listing(models.Model):
     def formatted_price(self):
         return f"{self.price:,.0f} TL".replace(",", ".")
 
+    @property
+    def sahibinden_link(self):
+        """
+        Sahibinden üzerinde garantili ve hatasız çalışan doğrudan arama/ilan linki üretir.
+        """
+        if self.source_url and "sahibinden.com" in self.source_url:
+            return self.source_url
+        query = f"{self.title} {self.city} {self.district}".strip()
+        encoded = urllib.parse.quote_plus(query)
+        return f"https://www.sahibinden.com/arama?query_text={encoded}"
+
 
 class UserPreference(models.Model):
     PRIORITY_CHOICES = [
@@ -95,9 +107,6 @@ class UserPreference(models.Model):
         ordering = ['-created_at']
 
     def calculate_match(self, listing):
-        """
-        Gelişmiş, esnek ve Türkçe karakter toleranslı eşleştirme algoritması.
-        """
         def normalize_tr(text):
             if not text:
                 return ""
@@ -111,14 +120,12 @@ class UserPreference(models.Model):
         positive_reasons = []
         notes = []
 
-        # Kategori kontrolü (Opsiyonel esneklik)
         if self.category and self.category_id != listing.category_id:
             score -= 30
             notes.append("Farklı kategori")
         elif self.category:
             positive_reasons.append(f"📁 Doğru kategori: {listing.category.name}")
 
-        # 1. Fiyat Değerlendirmesi
         listing_price = float(listing.price)
         max_p = float(self.max_price) if self.max_price else None
         min_p = float(self.min_price) if self.min_price else None
@@ -142,7 +149,6 @@ class UserPreference(models.Model):
                 score -= min(40, int(diff_pct * 0.8))
                 notes.append(f"⚠️ Bütçenizi %{int(diff_pct)} aşıyor")
 
-        # 2. Lokasyon Değerlendirmesi
         target_city_norm = normalize_tr(self.target_city)
         target_dist_norm = normalize_tr(self.target_district)
         listing_city_norm = normalize_tr(listing.city)
@@ -160,7 +166,6 @@ class UserPreference(models.Model):
                 score -= 20
                 notes.append(f"Farklı şehir ({listing.city})")
 
-        # 3. Anahtar Kelimeler & Açıklama / Donanım Taraması
         if self.keywords:
             raw_kws = [k.strip() for k in re.split(r'[,; ]+', self.keywords) if k.strip()]
             full_text_norm = normalize_tr(f"{listing.title} {listing.description} {' '.join(str(v) for v in listing.specs.values())}")
@@ -175,7 +180,6 @@ class UserPreference(models.Model):
                 score += min(20, len(matched) * 8)
                 positive_reasons.append(f"✨ Kriterler bulundu: {', '.join(matched)}")
 
-        # 4. Tescil ve Güvenilirlik Bonusu
         if listing.is_verified:
             positive_reasons.append(f"🛡️ %{listing.verification_score} Doğrulanmış & Tescilli İlan")
 

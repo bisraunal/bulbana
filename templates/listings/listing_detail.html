@@ -69,7 +69,7 @@
             <div class="col-md-6">
               <div class="p-2 border rounded-1 bg-light">
                 <div class="small text-muted fw-bold">Doğruluk Skoru</div>
-                <div class="fw-bold text-dark">%{listing.verification_score|default:95} (Yüksek Güvenilirlik)</div>
+                <div class="fw-bold text-dark">%{{ listing.verification_score|default:95 }} (Yüksek Güvenilirlik)</div>
               </div>
             </div>
           </div>
@@ -112,11 +112,10 @@
             <span class="fav-text">{% if is_favorite %}Favorilerden Çıkar{% else %}Favorilere Ekle{% endif %}</span>
           </button>
 
-          {% if listing.source_url %}
-            <a href="{{ listing.source_url }}" target="_blank" class="btn btn-warning btn-sm py-2 fw-bold text-dark d-flex align-items-center justify-content-center gap-2">
-              <i class="bi bi-box-arrow-up-right"></i> Sahibinden'de İncele
-            </a>
-          {% endif %}
+          <!-- Sahibinden'de Güvenli Açılan Link -->
+          <a href="{{ listing.sahibinden_link }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="btn btn-warning btn-sm py-2 fw-bold text-dark d-flex align-items-center justify-content-center gap-2 shadow-sm">
+            <i class="bi bi-box-arrow-up-right"></i> Sahibinden'de İncele
+          </a>
         </div>
       </div>
 
