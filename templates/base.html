@@ -1,9 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="tr" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}BulBana — Akıllı İlan Takip & Anlık Bildirim{% endblock %}</title>
+    <title>{% block title %}BulBana - Akilli Ilan Takip ve Anlik Bildirim{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome CDN -->
@@ -19,8 +22,7 @@
                             600: '#16a34a',
                             700: '#15803d',
                             900: '#14532d',
-                        },
-                        sahibinden: '#ffe600'
+                        }
                     }
                 }
             }
@@ -34,14 +36,14 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center space-x-3">
-                    <a href="{% if request.session.user_id %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}" class="flex items-center space-x-2">
-                        <div class="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-amber-400/20">
-                            🔍
+                    <a href="{% if request.session.user_id %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}" class="flex items-center space-x-3 group">
+                        <div class="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform flex items-center justify-center bg-slate-950">
+                            <img src="{% static 'images/symbol.svg' %}" alt="BulBana Logo" class="w-8 h-8">
                         </div>
-                        <span class="text-xl font-bold text-white tracking-tight">Bul<span class="text-amber-400">Bana</span></span>
+                        <span class="text-xl font-extrabold text-white tracking-tight">Bul<span class="text-amber-400">Bana</span></span>
                     </a>
                     <span class="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
-                        %100 Ücretsiz Takip
+                        Ucretsiz Ilan Radari
                     </span>
                 </div>
 

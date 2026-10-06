@@ -1,3 +1,4 @@
+{% load static %}
 {% extends 'base.html' %}
 
 {% block title %}Giriş Yap — BulBana İlan Takip{% endblock %}
@@ -8,8 +9,8 @@
         
         <!-- Header -->
         <div class="text-center space-y-3">
-            <div class="inline-flex p-4 rounded-2xl bg-amber-50 text-amber-500 text-3xl shadow-inner mb-2">
-                🚗 🏠 📱
+            <div class="inline-flex p-3 rounded-2xl bg-slate-950 shadow-xl shadow-amber-500/15 mb-2">
+                <img src="{% static 'images/symbol.svg' %}" alt="BulBana Logo" class="w-16 h-16">
             </div>
             <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 BulBana'ya Hoş Geldin!

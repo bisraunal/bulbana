@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+
+    <!-- Radar Glow Gradient -->
+    <linearGradient id="amberGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+
+    <!-- Emerald Pulse Accent -->
+    <linearGradient id="emeraldPulse" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="glowShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#F59E0B" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Container -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <rect width="504" height="504" x="4" y="4" rx="124" fill="none" stroke="#334155" stroke-width="6" stroke-opacity="0.6"/>
+
+  <!-- Radar Concentric Rings -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#1E293B" stroke-width="4" stroke-dasharray="8 8"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#334155" stroke-width="4" stroke-opacity="0.8"/>
+
+  <!-- Target Crosshairs -->
+  <line x1="256" y1="56" x2="256" y2="116" stroke="#F59E0B" stroke-width="8" stroke-linecap="round" stroke-opacity="0.8"/>
+  <line x1="256" y1="396" x2="256" y2="456" stroke="#F59E0B" stroke-width="8" stroke-linecap="round" stroke-opacity="0.8"/>
+  <line x1="56" y1="256" x2="116" y2="256" stroke="#F59E0B" stroke-width="8" stroke-linecap="round" stroke-opacity="0.8"/>
+  <line x1="396" y1="256" x2="456" y2="256" stroke="#F59E0B" stroke-width="8" stroke-linecap="round" stroke-opacity="0.8"/>
+
+  <!-- Main Finder Lens & B Monogram Group -->
+  <g filter="url(#glowShadow)">
+    <!-- Outer Search Lens Circle -->
+    <circle cx="236" cy="236" r="88" fill="none" stroke="url(#amberGlow)" stroke-width="24"/>
+    
+    <!-- Stylized Handle pointing down-right -->
+    <line x1="300" y1="300" x2="384" y2="384" stroke="url(#amberGlow)" stroke-width="28" stroke-linecap="round"/>
+    
+    <!-- Central Target Finder Beam (Target Center) -->
+    <circle cx="236" cy="236" r="32" fill="url(#amberGlow)"/>
+    <circle cx="236" cy="236" r="14" fill="#0F172A"/>
+
+    <!-- Green Opportunity Radar Pulse (Top Right Corner of Lens) -->
+    <circle cx="340" cy="150" r="22" fill="url(#emeraldPulse)"/>
+    <circle cx="340" cy="150" r="34" fill="none" stroke="#34D399" stroke-width="4" stroke-opacity="0.6"/>
+  </g>
+</svg>
