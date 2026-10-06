@@ -1,5 +1,9 @@
+import json
+import os
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 from .models import UserProfile, SearchTarget, ScrapedListing
 from urllib.parse import urlencode
 
@@ -214,3 +218,74 @@ def scan_target_manual_view(request, target_id):
         messages.warning(request, f"Tarama durumu: {result.get('message', 'Bilinmeyen durum')}")
 
     return redirect('dashboard')
+
+
+# ==========================================
+# REST API & CRON UÇ NOKTALARI (MOBİL & OTOMASYON)
+# ==========================================
+
+def api_targets_view(request):
+    """Mobil uygulama veya harici istemciler için kullanıcının alarmlarını JSON döner."""
+    username = request.GET.get('username') or request.session.get('username')
+    if not username:
+        return JsonResponse({'error': 'username parametresi gerekli'}, status=400)
+
+    user = get_object_or_404(UserProfile, username=username)
+    targets = user.targets.all()
+    data = []
+    for t in targets:
+        data.append({
+            'id': t.id,
+            'title': t.title,
+            'category': t.category,
+            'city': t.city,
+            'town': t.town,
+            'min_price': str(t.min_price) if t.min_price else None,
+            'max_price': str(t.max_price) if t.max_price else None,
+            'filter_criteria': t.filter_criteria,
+            'badges': t.get_badge_list(),
+            'is_active': t.is_active,
+            'last_checked_at': t.last_checked_at.isoformat() if t.last_checked_at else None,
+        })
+    return JsonResponse({'targets': data})
+
+
+def api_listings_view(request):
+    """Kullanıcının yakalanan ilanlarını JSON olarak döner."""
+    username = request.GET.get('username') or request.session.get('username')
+    if not username:
+        return JsonResponse({'error': 'username parametresi gerekli'}, status=400)
+
+    user = get_object_or_404(UserProfile, username=username)
+    listings = ScrapedListing.objects.filter(target__user=user).order_by('-created_at')[:50]
+    data = []
+    for l in listings:
+        data.append({
+            'id': l.id,
+            'target_title': l.target.title,
+            'title': l.title,
+            'price': l.price,
+            'location': l.location,
+            'image_url': l.image_url,
+            'listing_url': l.listing_url,
+            'published_date': l.published_date,
+            'created_at': l.created_at.isoformat(),
+        })
+    return JsonResponse({'listings': data})
+
+
+@csrf_exempt
+def api_cron_scan_view(request):
+    """
+    Vercel Cron, GitHub Actions veya harici cron servisleri için
+    arka planda tüm aktif alarmları tarayan güvenli uç nokta.
+    """
+    secret = request.GET.get('secret') or request.headers.get('Authorization')
+    expected_secret = os.getenv('CRON_SECRET', 'bulbana-cron-secret-key-2026')
+
+    if secret != expected_secret:
+        return JsonResponse({'error': 'Yetkisiz erişim: Geçersiz cron secret anahtarı'}, status=403)
+
+    from .services.scraper_service import scan_all_active_targets
+    results = scan_all_active_targets()
+    return JsonResponse({'status': 'success', 'results': results})
