@@ -1,136 +1,121 @@
-# 🚀 BulBana — Akıllı İlan Takip & Anlık Bildirim Platformu
-## 📄 Proje Mimari ve Geliştirme Yol Haritası (Project Blueprint)
+# BulBana - Akilli Ilan Takip ve Anlik Bildirim Platformu
+## Proje Mimari ve Gelistirme Dokumani
 
 ---
 
-## 1. 🎯 Proje Özeti ve Amacı
+## 1. Proje Ozeti ve Amaci
 
-**BulBana**, kullanıcının aradığı özel kriterlerdeki (örneğin: *"Kırmızı renkli, ağır hasar kayıtsız, 2018 model üstü Renault Clio"* veya *"Kadıköy'de 30.000 TL altı 2+1 daire"*) ilanları Sahibinden üzerinde **otomatik olarak periyodik tarayan**, kriterlere uyan yeni bir ilan yayınlandığı anda kullanıcıya **anlık bildirim (Telegram Botu & Web)** gönderen ve uygun ilanları akıllıca sıralayan **%100 ücretsiz** bir takip ve asistan sistemidir.
+BulBana, kullanicinin belirledigi ozel kriterlerdeki (orn: Belirli marka, model, renk, hasarsizlik durumu, fiyat araligi, konum ve emlak oda sayisi vb.) ilanlari Sahibinden uzerinde otomatik ve periyodik olarak tarayan, kriterlere uyan yeni bir ilan yayinlandigi anda kullaniciya anlik bildirim (Telegram Botu ve Web Paneli) gonderen ve uygun ilanlari filtreleyip listeleyen ucretsiz bir ilan takip platformudur.
 
 ---
 
-## 2. 💰 $0 Maliyetli Teknoloji Yığını (Tech Stack)
+## 2. Teknoloji Mimarisi (Tech Stack)
 
-Bu projenin geliştirilmesinde, test edilmesinde ve canlıya alınmasında **hiçbir ücretli servis kullanılmayacaktır**.
+Projenin gelistirilmesinde ve canliya alinmasinda asagidaki acik kaynak ve ucretsiz teknolojiler kullanilmaktadir:
 
-| Katman | Teknoloji | Açıklama & $0 Nedeni |
+| Katman | Teknoloji | Aciklama |
 | :--- | :--- | :--- |
-| **Backend & API** | **Python 3.12+ / Django 5.x & DRF** | Güçlü ORM, Admin Paneli ve REST API |
-| **Veritabanı** | **SQLite (Yerel) / Supabase PostgreSQL (Canlı)** | 500 MB ücretsiz bulut PostgreSQL |
-| **Veri Çekme (Scraping)** | **Playwright / BeautifulSoup4 / Requests** | Ücretsiz, dinamik sayfaları yakalayan güçlü web botu |
-| **Arka Plan Görevleri** | **APScheduler / Celery** | Belirlenen aralıklarla (örn: 5 dakikada bir) otomatik tarama |
-| **Anlık Bildirim** | **Telegram Bot API** | Kullanıcının cep telefonuna fotoğraflı, linkli ücretsiz bildirim |
-| **Frontend (Web & Mobil)** | **HTML5, TailwindCSS / Bootstrap 5, Vanilla JS** | Mobil uyumlu (PWA ready), hafif ve hızlı responsive arayüz |
-| **Yapay Zeka (Opsiyonel)** | **Google Gemini 2.0 / Flash API** | Günde 1.500 istek ücretsiz (İlan açıklaması analizi için) |
-| **Versiyon Kontrol** | **Git & GitHub** | Kodların güvenli takibi ve açık kaynak portfolyo |
+| **Backend & API** | Python 3.12+ / Django 5.1+ | ORM, yonetim paneli ve is mantigi cekirdegi |
+| **Veritabani** | SQLite (Yerel Gelistirme) / PostgreSQL (Uretim) | Ilan, hedef ve kullanici verilerinin saklanmasi |
+| **Veri Cekme (Scraping)** | BeautifulSoup4 / Requests | Sayfa ayristirma ve ilan detaylarini yakalama motoru |
+| **Bildirim Servisi** | Telegram Bot API | Kullaniciya anlik fotografli ve linkli mesaj iletimi |
+| **On Yuz (UI)** | HTML5, Tailwind CSS, Vanilla JS | Mobil uyumlu duyarlı (responsive) kontrol paneli |
+| **Versiyon Kontrol** | Git & GitHub | Kaynak kod yonetimi ve surum takibi |
 
 ---
 
-## 3. 🧩 Sistem Mimarisi ve Çalışma Mantığı
+## 3. Sistem Mimarisi ve Calisma Akisi
 
 ```mermaid
 flowchart TD
-    subgraph Kullanıcı_Arayüzü ["👤 Kullanıcı Katmanı (Web & Mobil)"]
-        User["Kullanıcı"] -->|1. Kullanıcı Adı ile Giriş| Login["Hızlı Giriş Ekranı"]
-        Login --> Dashboard["Kullanıcı Paneli & Arama Formu"]
-        Dashboard -->|2. Kriter Kaydet (Örn: Kırmızı, Hasarsız Clio)| SaveTarget["Alarm Oluştur"]
+    subgraph Kullanici_Katmani ["Kullanici Katmani (Web & Mobil)"]
+        User["Kullanici"] -->|Kullanici Adi ile Giris| Login["Giris Ekrani"]
+        Login --> Dashboard["Kontrol Paneli"]
+        Dashboard -->|Yeni Kriter Ekle| SaveTarget["Alarm Olustur"]
     end
 
-    subgraph Backend_Core ["⚙️ Django Backend & Veritabanı"]
-        SaveTarget --> DB_Target[("Arama Kriterleri (SearchTarget)")]
-        Scheduler["Zamanlayıcı (Scheduler - 5 Dk'da Bir)"] -->|Hedefleri Oku| DB_Target
-        Scheduler --> Scraper["Akıllı Veri Çekme Motoru (Scraper)"]
+    subgraph Backend_Katmani ["Django Backend & Veritabani"]
+        SaveTarget --> DB_Target[("SearchTarget (Kriterler)")]
+        Scheduler["Zamanlayici (Scheduler)"] -->|Aktif Hedefleri Oku| DB_Target
+        Scheduler --> Scraper["Ilan Tarama Motoru (Scraper)"]
     end
 
-    subgraph External_Web ["🌐 Dış Kaynak"]
-        Scraper -->|3. Filtreli Arama İsteği At| Sahibinden[("Sahibinden Web Sitesi")]
-        Sahibinden -->|4. Ham HTML / İlan Listesi| Scraper
+    subgraph Dis_Kaynak ["Dis Kaynak"]
+        Scraper -->|Arama Istegi| Sahibinden[("Sahibinden Web")]
+        Sahibinden -->|Ilan Verileri| Scraper
     end
 
-    subgraph Processing_Alert ["🔔 İşleme & Anlık Bildirim"]
-        Scraper --> Parser["İlan Ayrıştırıcı (Parser & Cleaner)"]
-        Parser --> DB_Listings[("Kayıtlı İlanlar (ScrapedListing)")]
-        DB_Listings -->|Yeni İlan Tespit Edildiğinde| Notifier["Bildirim Servisi (Notification Service)"]
-        Notifier -->|5. Anlık Mesaj & Fotoğraf| TelegramBot["📲 Telegram Botu"]
-        Notifier -->|6. Panelde Listele| Dashboard
-        TelegramBot -->|7. Cebe Bildirim Gelir| User
+    subgraph Bildirim_Katmani ["Isleme ve Bildirim"]
+        Scraper --> FilterEngine["Filtreleme Motoru (FilterService)"]
+        FilterEngine --> DB_Listings[("ScrapedListing (Eslesen Ilanlar)")]
+        DB_Listings -->|Yeni Ilan Bulundugunda| Telegram["Telegram Botu / Web Bildirimi"]
+        Telegram -->|Anlik Bildirim| User
     end
 ```
 
 ---
 
-## 4. 🗄️ Veritabanı Modelleri (Database Schema)
+## 4. Veritabani Modelleri (Database Schema)
 
-### 1. `UserProfile` (Kullanıcı Profili)
-* `username`: Benzersiz kullanıcı adı (Hızlı giriş için).
-* `telegram_chat_id`: Kullanıcının bildirim alacağı Telegram ID'si (Opsiyonel).
-* `created_at`: Oluşturulma tarihi.
+### 1. UserProfile (Kullanici Profili)
+* `username`: Benzersiz kullanici adi (Sifresiz/hizli giris).
+* `telegram_chat_id`: Kullanicinin bildirim alacagi Telegram ID bilgisi.
+* `created_at`: Profil olusturulma tarihi.
 
-### 2. `SearchTarget` (Arama Kriteri / Alarm)
-* `user`: Hangi kullanıcıya ait olduğu (`ForeignKey -> UserProfile`).
-* `title`: Alarm başlığı (Örn: *"Kırmızı Clio 2018+"*).
-* `category`: Kategori (Vasıta, Emlak, İkinci El).
-* `query_url`: Sahibinden arama URL'i veya oluşturulan filtre URL'i.
-* `min_price` / `max_price`: Fiyat aralığı.
-* `keywords`: İlan açıklamasında/başlığında aranan kelimeler (Örn: *"kırmızı, hatasız, boyasız"*).
-* `excluded_keywords`: İstenmeyen kelimeler (Örn: *"ağır hasar, pert, taksi çıkması"*).
-* `is_active`: Alarmın aktiflik durumu (True/False).
-* `check_interval_minutes`: Kaç dakikada bir taranacağı (Varsayılan: 5 dk).
-* `last_checked_at`: Son kontrol zamanı.
+### 2. SearchTarget (Arama Kriteri / Alarm)
+* `user`: Ilgili kullanici (`ForeignKey -> UserProfile`).
+* `title`: Alarm basligi (Orn: Kirmizi Hasarsiz Clio 2020, Kadikoy 2+1 Daire).
+* `category`: Kategori (Vasita, Emlak, Ikinci El).
+* `city` / `town`: Sehir ve ilce filtreleri.
+* `min_price` / `max_price`: Fiyat limitleri.
+* `search_url`: Sahibinden arama URL'i.
+* `filter_criteria` (JSONField): Tum ozel filtreleri (Marka, model, yil min/max, km max, vites, yakit, renk, hasar durumu, oda sayisi, m2, bina yasi, balkon, esyali vb.) saklayan dinamik alan.
+* `keywords`: Aranacak pozitif anahtar kelimeler.
+* `negative_keywords`: Haric tutulacak negatif anahtar kelimeler (Orn: agir hasar, pert, taksi cikmasi).
+* `is_active`: Alarm aktiflik durumu.
+* `last_checked_at`: Son kontrol zamani.
+* `created_at`: Olusturulma tarihi.
 
-### 3. `ScrapedListing` (Çekilen & Eşleşen İlan)
-* `target`: Hangi arama kriteriyle eşleştiği (`ForeignKey -> SearchTarget`).
-* `external_id`: Sahibinden ilan numarası (Tekrar eden ilanları engellemek için `unique`).
-* `title`: İlan başlığı.
-* `price`: İlan fiyatı.
-* `location`: Şehir / İlçe.
-* `image_url`: İlan kapak görseli linki.
-* `listing_url`: Doğrudan ilana giden link.
-* `published_date`: İlanın yayınlanma tarihi/saati.
-* `is_notified`: Kullanıcıya bildirimi atıldı mı? (True/False).
-* `created_at`: Sisteme kayıt tarihi.
-
----
-
-## 5. 🛠️ Adım Adım Geliştirme Yol Haritası (Execution Roadmap)
-
-```mermaid
-flowchart LR
-    S1["1. Adım: Proje İskeleti & Git"] --> S2["2. Adım: DB Modelleri & Admin"]
-    S2 --> S3["3. Adım: Scraping & Parser Motoru"]
-    S3 --> S4["4. Adım: Telegram Bildirim Servisi"]
-    S4 --> S5["5. Adım: Web & Mobil Arayüz"]
-    S5 --> S6["6. Adım: Test & $0 Canlıya Alma"]
-```
-
-### 🔹 1. Adım: Temiz Çevre Kurulumu & Git Entegrasyonu
-* Eski `bulbana` dosyalarını temizleme, temiz sanal ortam (`.venv`) ve `requirements.txt` hazırlama.
-* Git reposunu sıfırlayıp GitHub'a ilk temiz commit'i atma.
-
-### 🔹 2. Adım: Django Veri Modelleri & Kolay Admin Yönetimi
-* `UserProfile`, `SearchTarget`, `ScrapedListing` modellerini kodlama.
-* Veritabanı migrasyonlarını çalıştırma ve Django Admin'de test etme.
-
-### 🔹 3. Adım: Akıllı Scraping & Filtreleme Motoru
-* `services/scraper_service.py` modülü: Sahibinden sayfalarından güvenli, IP ban yemeyecek şekilde başlık, fiyat, görsel, ilan no ve detay çekme.
-* `services/filter_service.py` modülü: Çekilen ilanları kullanıcının pozitif (`kırmızı`) ve negatif (`ağır hasar`) anahtar kelimeleriyle eleme.
-
-### 🔹 4. Adım: %100 Ücretsiz Telegram Bildirim Sistemi
-* Telegram Botu oluşturma (`BotFather` üzerinden 1 dakikada ücretsiz bot açma).
-* Yeni bir ilan bulunduğunda kullanıcının cebine fotoğraflı, fiyatlı ve linkli mesaj fırlatma.
-
-### 🔹 5. Adım: Modern, Mobil Uyumlu Web Arayüzü (UI/UX)
-* Kullanıcı adı ile tek tıkla giriş ekranı.
-* "Yeni Alarm Ekle" formu (Araç rengi, modeli, hasar durumu, fiyat aralığı seçimi).
-* Kullanıcıya özel bulunan fırsat ilanlarının şık kartlar halinde sıralandığı akıllı panel.
-
-### 🔹 6. Adım: Otomatik Zamanlayıcı (Scheduler) & Canlıya Alma
-* Arka planda 5 dakikada bir otomatik çalışan tarama döngüsünü başlatma.
-* Projeyi GitHub üzerinden $0 maliyetle canlıya alma (Render/Vercel).
+### 3. ScrapedListing (Eslesen Ilan)
+* `target`: Iliskili arama hedefi (`ForeignKey -> SearchTarget`).
+* `external_id`: Sahibinden ilan numarasi (Mukerrer kayit engelleme icin `unique_together`).
+* `title`: Ilan basligi.
+* `price`: Ilan fiyati.
+* `location`: Sehir / Ilce.
+* `image_url`: Kapak gorseli URL'i.
+* `listing_url`: Dogrudan ilan detay linki.
+* `published_date`: Yayinlanma tarihi.
+* `attributes` (JSONField): Ilan ozellikleri.
+* `is_notified`: Bildirimin gonderilip gonderilmedigi.
+* `created_at`: Sisteme kayit tarihi.
 
 ---
 
-## 6. 🛡️ Güvenlik, Anti-Bot & Kalite Standartları
-* **Bot Koruması & Rate Limit:** Sahibinden'e yüklenmemek ve IP engeli almamak için istekler arasına rastgele bekleme süreleri (jitter delay) ve gerçekçi `User-Agent` başlıkları koyulacaktır.
-* **Mükerrer Veri Koruması:** `external_id` (İlan No) kontrolü ile aynı ilan için kullanıcıya asla birden fazla bildirim gitmeyecektir.
-* **Modüler Kod:** İş mantığı `views.py` içine yığılmayacak; `services/` klasörü altında tertemiz ayrılacaktır.
+## 5. Gelistirme Adimlari
+
+### 1. Adim: Temel Yapi ve Veritabani Modelleri
+* Django ortam kurulumu, ayar dosyalari ve bagimliliklarin yapilandirilmasi.
+* `UserProfile`, `SearchTarget` ve `ScrapedListing` modellerinin olusturulmasi ve migrasyonlarin uygulanmasi.
+
+### 2. Adim: Filtreleme ve Esleme Servisi (FilterService)
+* Pozitif kelime, negatif kelime, fiyat araligi, yil ve lokasyon dogrulamasini yapan servis katmaninin kodlanmasi.
+
+### 3. Adim: Web Tarama ve Ayristirma Motoru (ScraperService)
+* Sahibinden arama sonuclarini HTTP uzerinden guvenle parse eden, ilan numarasi kontroluyle mukerrer kayitlari onleyen ve eslesen ilanlari kaydeden servis.
+
+### 4. Adim: Telegram Bildirim Entegrasyonu (TelegramService)
+* Telegram Bot API uzerinden bulunan yeni ilanlar icin kullanicinin telefonuna fotografli, fiyatli ve linkli bildirim gonderen mekanizma.
+
+### 5. Adim: Kullanici Arayuzu (UI/UX)
+* Kullanici giris ekrani (`login.html`), kontrol paneli (`dashboard.html`) ve dinamik kategori formunu iceren alarm ekleme ekrani (`add_target.html`).
+
+### 6. Adim: Otomasyon ve Zamanlayici
+* Arka planda periyodik tarama yapan `run_scanner` yonetim komutu ve periyodik calisma dongusu.
+
+---
+
+## 6. Guvenlik ve Performans Kurallari
+
+* **Mukerrer Kayit Engeli:** Veritabaninda `unique_together = ('target', 'external_id')` kisitiyla ayni ilan icin tekrar bildirim gitmesi onlenir.
+* **Hata Yonetimi:** Dis kaynak erisimlerinde olusabilecek baglanti kopmalari veya HTTP hatalari izole edilerek sistem calismasi kesintiye ugratilmaz.
+* **Moduler Tasarim:** Is mantigi `views.py` yerine `services/` klasoru altinda ayrik servislerde yonetilir.

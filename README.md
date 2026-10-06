@@ -1,30 +1,53 @@
-# 🔍 BulBana — Akıllı İlan Takip & Anlık Bildirim Sistemi
+# BulBana - Akilli Ilan Takip ve Anlik Bildirim Sistemi
 
-<div align="center">
+Sahibinden uzerindeki ozel kriterli ilanlari (vasita, emlak, ikinci el) otomatik tarayan ve kriterlere uygun yeni ilan tespit edildiginde kullaniciya Telegram uzerinden anlik bildirim gonderen acik kaynakli asistan platformu.
 
-![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Django](https://img.shields.io/badge/Django-5.1%2B-092E20?style=for-the-badge&logo=django&logoColor=white)
-![Telegram](https://img.shields.io/badge/Telegram_Bot-Instant_Alerts-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)
-![Cost](https://img.shields.io/badge/Cost-%240_Zero_Cost-brightgreen?style=for-the-badge)
-
-**Sahibinden üzerindeki özel kriterli ilanları (araç, emlak, ikinci el) otomatik tarayan ve kriterlere uygun yeni ilan düştüğünde Telegram üzerinden cebinize anlık bildirim atan %100 ücretsiz asistan platformu.**
-
-[Mimari ve Proje Planı Dokümanı](docs/PROJECT_PLAN.md)
-
-</div>
+[Detayli Proje Dokumani](docs/PROJECT_PLAN.md)
 
 ---
 
-## 📌 Proje Özellikleri
+## Temel Ozellikler
 
-* 👤 **Kişiye Özel Giriş:** Sadece kullanıcı adı ile hızlı ve sade profil yönetimi.
-* 🎯 **Özel Kriterli Alarm Kurma:** Marka, model, renk (örn: *Kırmızı*), hasar durumu (örn: *Ağır hasarsız*), fiyat aralığı ve negatif filtreleme.
-* 🤖 **Akıllı Scraping & Filtreleme Motoru:** Arka planda periyodik çalışan, ilan başlık ve açıklamalarını analiz eden bot.
-* 📲 **Anlık Telegram Bildirimi ($0 Maliyet):** Uygun yeni bir ilan yayınlandığı anda fotoğraflı ve doğrudan linkli anlık mesaj.
-* 📱 **Web & Mobil Uyumlu Arayüz:** Sade, modern ve duyarlı kart listeleme paneli.
+* **Kullanici Yonetimi:** Kullanici adi ile sade oturum ve profil yonetimi.
+* **Kapsamli Kriter Tanimlama:** Marka, model, yil araligi, kilometre, vites, yakit, renk, hasarsizlik durumu (agir hasar haric tutma), emlak oda sayisi, m2 ve fiyat araligi filtreleme.
+* **Akilli Filtreleme ve Tarama Motoru:** Arka planda periyodik calisan, ilan baslik ve ozelliklerini kriterlerle karsilastiran servis.
+* **Anlik Telegram Bildirimi:** Eslesen yeni ilan tespit edildiginde fotografli, detayli ve dogrudan linkli bildirim.
+* **Mobil Uyumlu Web Paneli:** Modern ve responsive kontrol paneli arayuzu.
 
 ---
 
-## 🛠️ Kurulum ve Başlangıç
+## Kurulum ve Calistirma
 
-Detaylı mimari ve adım adım geliştirme planı için **[`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md)** dosyasını inceleyebilirsiniz.
+### 1. Bagimliliklarin Yuklenmesi
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .\.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 2. Veritabani Migrasyonlari
+```bash
+python manage.py migrate
+```
+
+### 3. Sunucuyu Baslatma
+```bash
+python manage.py runserver
+```
+
+### 4. Tarama Motorunu Calistirma
+```bash
+# Tek seferlik tarama:
+python manage.py run_scanner
+
+# 5 dakikada bir otomatik dongu:
+python manage.py run_scanner --loop --interval 5
+```
+
+---
+
+## Testlerin Calistirilmasi
+
+```bash
+python manage.py test
+```
