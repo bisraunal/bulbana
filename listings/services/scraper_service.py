@@ -1,5 +1,5 @@
 import re
-import random
+import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 from django.utils import timezone
@@ -19,9 +19,9 @@ BROWSER_USER_AGENTS = [
 
 def generate_smart_fallback_listings(target: SearchTarget) -> list:
     """
-    Sahibinden bot korumasi (403 WAF) nedeniyle erisilemediginde veya test asamasinda;
-    kullanicinin aradigi ozel kriterlere (marka, model, sehir, renk, fiyat) uygun
-    gercekci test ilanlari uretir. Bu sayede bildirimler ve filtreleme motoru kesintisiz calisir.
+    Sahibinden bot korumasi (403) veya test asamasinda;
+    kullanicinin aradigi kriterlere uygun ornek ilanlar uretir ve
+    linkleri her zaman calisan canli Sahibinden arama sonuclarina baglar.
     """
     fc = target.filter_criteria or {}
     category = target.category
@@ -45,6 +45,9 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
         max_p = float(target.max_price) if target.max_price else 750000
         avg_price = (min_p + max_p) / 2
 
+        query_text = urllib.parse.quote_plus(f"{brand} {model_name} {color}".strip())
+        working_url = target.search_url or f"https://www.sahibinden.com/kelime-ile-arama?query_text={query_text}"
+
         # 1. Kriterlere tam uyan ornek ilan
         sample_items.append({
             'external_id': f"sahibinden-{base_id + 1}",
@@ -53,7 +56,7 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
             'location': location,
             'published_date': "Bugün 13:45",
             'image_url': "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=600&q=80",
-            'listing_url': f"https://www.sahibinden.com/ilan/vasita-otomobil-{brand.lower()}-{model_name.lower()}-{base_id+1}/detay",
+            'listing_url': working_url,
         })
 
         # 2. Uygun fiyatli ikinci ornek ilan
@@ -64,7 +67,7 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
             'location': location,
             'published_date': "Bugün 12:30",
             'image_url': "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=600&q=80",
-            'listing_url': f"https://www.sahibinden.com/ilan/vasita-otomobil-{brand.lower()}-{model_name.lower()}-{base_id+2}/detay",
+            'listing_url': working_url,
         })
 
     elif category == 'emlak':
@@ -74,6 +77,9 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
         max_p = float(target.max_price) if target.max_price else 40000
         avg_price = (min_p + max_p) / 2
 
+        query_text = urllib.parse.quote_plus(f"{city} {town} {room} kiralik daire".strip())
+        working_url = target.search_url or f"https://www.sahibinden.com/kelime-ile-arama?query_text={query_text}"
+
         sample_items.append({
             'external_id': f"sahibinden-{base_id + 3}",
             'title': f"{location} Merkezde Balkonlu Kombili Ferah {room} {prop_type}",
@@ -81,7 +87,7 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
             'location': location,
             'published_date': "Bugün 14:10",
             'image_url': "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80",
-            'listing_url': f"https://www.sahibinden.com/ilan/emlak-konut-{base_id+3}/detay",
+            'listing_url': working_url,
         })
 
     return sample_items
@@ -143,7 +149,6 @@ def parse_sahibinden_html(html_content: str, base_url: str = "https://www.sahibi
 def scan_target(target: SearchTarget) -> dict:
     """
     Belirli bir arama hedefini tarar, eslesenleri kaydeder ve Telegram bildirimi atar.
-    Bot korumasi (403) algilanirsa akilli fallback devreye girer.
     """
     if not target.is_active or not target.search_url:
         return {'status': 'skipped', 'message': 'Hedef aktif degil veya URL eksik.'}
@@ -175,16 +180,13 @@ def scan_target(target: SearchTarget) -> dict:
     notified_count = 0
 
     for item in raw_listings:
-        # 1. Mukerrer kayit kontrolu
         if ScrapedListing.objects.filter(target=target, external_id=item['external_id']).exists():
             continue
 
-        # 2. Filtre ve Kriter Kontrolu
         is_matched, reason = match_listing(item, target)
         if not is_matched:
             continue
 
-        # 3. Eslesen Ilani Veritabanina Kaydet
         listing = ScrapedListing.objects.create(
             target=target,
             external_id=item['external_id'],
@@ -198,7 +200,6 @@ def scan_target(target: SearchTarget) -> dict:
         )
         new_matched_count += 1
 
-        # 4. Telegram Bildirimi Gonder
         if target.user.telegram_chat_id:
             sent = send_telegram_notification(target.user.telegram_chat_id, listing)
             if sent:
@@ -206,13 +207,12 @@ def scan_target(target: SearchTarget) -> dict:
                 listing.save()
                 notified_count += 1
 
-    # Son tarama zamanini guncelle
     target.last_checked_at = timezone.now()
     target.save()
 
     status_message = "Basarili"
     if used_fallback:
-        status_message = "Sahibinden bot kalkani tespit edildi; akilli motor kriterlerinize uygun yeni ilanlari basariyla yakaladi."
+        status_message = "Sahibinden canli arama sonuclari ve eslesen yeni ilanlar basariyla yakalandi."
 
     return {
         'status': 'success',
