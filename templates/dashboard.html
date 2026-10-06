@@ -73,6 +73,15 @@
                                 </span>
                             </div>
 
+                            <!-- Dynamic Filter Badge Pills -->
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                {% for badge in target.get_badge_list %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                        {{ badge }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+
                             <!-- Keywords & Filters -->
                             <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 {% if target.keywords %}
@@ -91,8 +100,8 @@
                                     <div class="flex items-start gap-1">
                                         <span class="font-bold text-slate-500 min-w-16">Fiyat:</span>
                                         <span class="text-slate-800 font-medium">
-                                            {% if target.min_price %}{{ target.min_price }} TL{% else %}0{% endif %} - 
-                                            {% if target.max_price %}{{ target.max_price }} TL{% else %}Limitsiz{% endif %}
+                                            {% if target.min_price %}{{ target.min_price|floatformat:0 }} TL{% else %}0{% endif %} - 
+                                            {% if target.max_price %}{{ target.max_price|floatformat:0 }} TL{% else %}Limitsiz{% endif %}
                                         </span>
                                     </div>
                                 {% endif %}

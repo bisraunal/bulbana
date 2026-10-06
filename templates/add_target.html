@@ -1,23 +1,23 @@
 {% extends 'base.html' %}
 
-{% block title %}Yeni İlan Alarmı Ekle — BulBana{% endblock %}
+{% block title %}Kapsamlı İlan Alarmı Kur — BulBana{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto py-6 px-4">
-    <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-6">
+<div class="max-w-4xl mx-auto py-6 px-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-8">
         
         <!-- Header -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-5">
             <div>
-                <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center">
                     🎯 Yeni İlan Alarmı Kur
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-1">
-                    Aradığın kriterleri belirle, Sahibinden'e bu ilandan düştüğü an yakalayalım.
+                    Sahibinden'deki tüm filtreleri (Marka, Model, Yıl, KM, Vites, Renk, Hasarsızlık, Oda vb.) eksiksiz belirleyin.
                 </p>
             </div>
             <a href="{% url 'dashboard' %}" class="text-xs font-bold text-slate-500 hover:text-slate-900 bg-slate-100 px-3 py-2 rounded-xl">
-                <i class="fa-solid fa-arrow-left mr-1"></i> İptal
+                <i class="fa-solid fa-arrow-left mr-1"></i> Vazgeç
             </a>
         </div>
 
@@ -25,89 +25,240 @@
         <form method="POST" action="{% url 'add_target' %}" class="space-y-6">
             {% csrf_token %}
 
-            <!-- Title & Category -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label for="title" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Alarm Başlığı <span class="text-rose-500">*</span>
-                    </label>
-                    <input type="text" id="title" name="title" required
-                        placeholder="Örn: Kırmızı Hasarsız Clio 2018+"
-                        class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
-                </div>
+            <!-- 1. Temel Bilgiler & Kategori Seçimi -->
+            <div class="space-y-4">
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                    <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2">1</span>
+                    Alarm Başlığı ve Kategori
+                </h3>
 
-                <div>
-                    <label for="category" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Kategori <span class="text-rose-500">*</span>
-                    </label>
-                    <select id="category" name="category"
-                        class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
-                        <option value="vasita">🚗 Vasıta (Otomobil / Araç)</option>
-                        <option value="emlak">🏠 Emlak (Konut / Kiralık / Satılık)</option>
-                        <option value="ikinci_el">📱 İkinci El & Alışveriş</option>
-                    </select>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label for="title" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                            Alarm Başlığı <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" id="title" name="title" required
+                            placeholder="Örn: Kırmızı Hasarsız Clio 2020+, Kadıköy 2+1 Balkonlu"
+                            class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
+                    </div>
+
+                    <div>
+                        <label for="category" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                            Kategori <span class="text-rose-500">*</span>
+                        </label>
+                        <select id="category" name="category" onchange="toggleCategoryFields(this.value)"
+                            class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-bold">
+                            <option value="vasita">🚗 Vasıta (Otomobil / Araç)</option>
+                            <option value="emlak">🏠 Emlak (Konut / Kiralık / Satılık)</option>
+                            <option value="ikinci_el">📱 İkinci El & Alışveriş</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <!-- Sahibinden Search URL -->
-            <div>
-                <label for="search_url" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                    Sahibinden Arama / Filtre Linki <span class="text-rose-500">*</span>
+            <!-- 2. Lokasyon & Fiyat Sınırları -->
+            <div class="space-y-4 pt-2">
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                    <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2">2</span>
+                    Lokasyon ve Fiyat Aralığı
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label for="city" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Şehir / İl</label>
+                        <input type="text" id="city" name="city" placeholder="Örn: İstanbul"
+                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="town" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">İlçe</label>
+                        <input type="text" id="town" name="town" placeholder="Örn: Kadıköy"
+                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="min_price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Min Fiyat (TL)</label>
+                        <input type="number" id="min_price" name="min_price" placeholder="Örn: 400000"
+                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="max_price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Max Fiyat (TL)</label>
+                        <input type="number" id="max_price" name="max_price" placeholder="Örn: 750000"
+                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. VASITA ÖZEL FİLTRELERİ -->
+            <div id="vasita-filters" class="space-y-4 pt-2 bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80">
+                <h3 class="text-sm font-black text-blue-900 uppercase tracking-wider flex items-center">
+                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white inline-flex items-center justify-center text-xs mr-2">3</span>
+                    🚗 Vasıta / Otomobil Filtreleri
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <label for="brand" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Marka</label>
+                        <input type="text" id="brand" name="brand" placeholder="Örn: Renault, BMW, Volkswagen"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="model_name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Seri / Model</label>
+                        <input type="text" id="model_name" name="model_name" placeholder="Örn: Clio, 320i, Golf"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="color" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">🎨 Renk</label>
+                        <input type="text" id="color" name="color" placeholder="Örn: Kırmızı, Beyaz, Siyah"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="year_min" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Min Yıl</label>
+                        <input type="number" id="year_min" name="year_min" placeholder="Örn: 2018"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="year_max" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Max Yıl</label>
+                        <input type="number" id="year_max" name="year_max" placeholder="Örn: 2024"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="km_max" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Max KM</label>
+                        <input type="number" id="km_max" name="km_max" placeholder="Örn: 100000"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="transmission" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Vites Tipi</label>
+                        <select id="transmission" name="transmission" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                            <option value="">Fark Etmez (Tümü)</option>
+                            <option value="Otomatik">Otomatik</option>
+                            <option value="Manuel">Manuel</option>
+                            <option value="Yarı Otomatik">Yarı Otomatik</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="fuel" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Yakıt Tipi</label>
+                        <select id="fuel" name="fuel" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                            <option value="">Fark Etmez (Tümü)</option>
+                            <option value="Benzin">Benzin</option>
+                            <option value="Dizel">Dizel</option>
+                            <option value="Hibrit">Hibrit</option>
+                            <option value="Elektrik">Elektrik</option>
+                            <option value="LPG">LPG & Benzin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="damage_status" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Hasar / Ekspertiz Durumu</label>
+                        <select id="damage_status" name="damage_status" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold text-emerald-700">
+                            <option value="Ağır Hasarsız">🛡️ Ağır Hasar Kaydı Yok (Önerilen)</option>
+                            <option value="Boyasız & Değişensiz">✨ Boyasız / Değişensiz</option>
+                            <option value="">Fark Etmez (Tümü)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. EMLAK ÖZEL FİLTRELERİ -->
+            <div id="emlak-filters" class="hidden space-y-4 pt-2 bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80">
+                <h3 class="text-sm font-black text-emerald-900 uppercase tracking-wider flex items-center">
+                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white inline-flex items-center justify-center text-xs mr-2">3</span>
+                    🏠 Emlak / Konut Filtreleri
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <label for="prop_type" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tür</label>
+                        <select id="prop_type" name="prop_type" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                            <option value="Kiralık Daire">Kiralık Daire</option>
+                            <option value="Satılık Daire">Satılık Daire</option>
+                            <option value="Günlük Kiralık">Günlük Kiralık</option>
+                            <option value="Villa">Villa / Müstakil</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="room_count" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Oda Sayısı</label>
+                        <select id="room_count" name="room_count" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                            <option value="">Fark Etmez</option>
+                            <option value="1+1">1+1</option>
+                            <option value="2+1">2+1</option>
+                            <option value="3+1">3+1</option>
+                            <option value="4+1">4+1</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="m2_min" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Min Metrekare (m²)</label>
+                        <input type="number" id="m2_min" name="m2_min" placeholder="Örn: 85"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="building_age" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Bina Yaşı</label>
+                        <select id="building_age" name="building_age" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                            <option value="">Fark Etmez</option>
+                            <option value="0 (Sıfır)">0 (Sıfır Bina)</option>
+                            <option value="1-5">1-5 Yaş</option>
+                            <option value="5-10">5-10 Yaş</option>
+                            <option value="11-20">11-20 Yaş</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="heating" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Isıtma Tipi</label>
+                        <select id="heating" name="heating" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                            <option value="">Fark Etmez</option>
+                            <option value="Kombi Doğalgaz">Kombi (Doğalgaz)</option>
+                            <option value="Yerden Isıtma">Yerden Isıtma</option>
+                            <option value="Merkezi">Merkezi Sistem</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-6 pt-5">
+                        <label class="inline-flex items-center text-sm font-bold text-slate-800 cursor-pointer">
+                            <input type="checkbox" name="balcony" value="true" class="w-4 h-4 text-emerald-600 rounded">
+                            <span class="ml-2">🌿 Balkonlu</span>
+                        </label>
+                        <label class="inline-flex items-center text-sm font-bold text-slate-800 cursor-pointer">
+                            <input type="checkbox" name="furnished" value="true" class="w-4 h-4 text-emerald-600 rounded">
+                            <span class="ml-2">🛋️ Eşyalı</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Anahtar Kelime Filtreleri -->
+            <div class="space-y-4 pt-2">
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                    <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2">4</span>
+                    Özel Kelime Filtreleri
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="keywords" class="block text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1.5 flex items-center">
+                            <i class="fa-solid fa-check-double mr-1.5 text-emerald-500"></i> Aranan Kelimeler (Pozitif)
+                        </label>
+                        <input type="text" id="keywords" name="keywords"
+                            placeholder="Örn: kırmızı, hatasız, cam tavan, icon paket"
+                            class="block w-full px-3 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50/20 text-slate-900 text-sm">
+                    </div>
+                    <div>
+                        <label for="negative_keywords" class="block text-xs font-bold text-rose-700 uppercase tracking-wider mb-1.5 flex items-center">
+                            <i class="fa-solid fa-ban mr-1.5 text-rose-500"></i> Hariç Tutulacak Kelimeler (Negatif)
+                        </label>
+                        <input type="text" id="negative_keywords" name="negative_keywords"
+                            placeholder="Örn: ağır hasar, pert, taksi çıkması, bodrum kat"
+                            class="block w-full px-3 py-2.5 rounded-xl border border-rose-200 bg-rose-50/20 text-slate-900 text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Doğrudan Sahibinden Linki (Opsiyonel) -->
+            <div class="pt-2 border-t border-slate-100">
+                <label for="search_url" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Sahibinden Özel Arama Linki (Opsiyonel)
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-amber-500">
                         <i class="fa-solid fa-link"></i>
                     </div>
-                    <input type="url" id="search_url" name="search_url" required
-                        placeholder="https://www.sahibinden.com/renault-clio..."
-                        class="block w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
-                </div>
-                <p class="mt-1.5 text-xs text-slate-400">
-                    💡 Sahibinden sitesinde istediğiniz filtreleri (marka, ilçe vb.) seçip arama yaptıktan sonra tarayıcınızdaki arama linkini buraya yapıştırın.
-                </p>
-            </div>
-
-            <!-- Price Range -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label for="min_price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Minimum Fiyat (TL)
-                    </label>
-                    <input type="number" id="min_price" name="min_price" step="1000"
-                        placeholder="Örn: 400000"
-                        class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
-                </div>
-
-                <div>
-                    <label for="max_price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Maksimum Fiyat (TL)
-                    </label>
-                    <input type="number" id="max_price" name="max_price" step="1000"
-                        placeholder="Örn: 750000"
-                        class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
-                </div>
-            </div>
-
-            <!-- Keywords & Negative Keywords -->
-            <div class="space-y-4 pt-2">
-                <div>
-                    <label for="keywords" class="block text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 flex items-center">
-                        <i class="fa-solid fa-check-double mr-1.5 text-emerald-500"></i> Aranan Kelimeler (Pozitif Filtre)
-                    </label>
-                    <input type="text" id="keywords" name="keywords"
-                        placeholder="kırmızı, hatasız, boyasız, otomatik (Virgülle ayırın)"
-                        class="block w-full px-4 py-3 rounded-xl border border-emerald-200 bg-emerald-50/20 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all text-sm font-medium">
-                    <p class="mt-1 text-[11px] text-slate-400">İlan başlığında bu kelimelerden en az biri geçmelidir.</p>
-                </div>
-
-                <div>
-                    <label for="negative_keywords" class="block text-xs font-bold text-rose-700 uppercase tracking-wider mb-2 flex items-center">
-                        <i class="fa-solid fa-ban mr-1.5 text-rose-500"></i> Hariç Tutulacak Kelimeler (Negatif Filtre)
-                    </label>
-                    <input type="text" id="negative_keywords" name="negative_keywords"
-                        placeholder="ağır hasar, pert, taksi çıkması, tramerli (Virgülle ayırın)"
-                        class="block w-full px-4 py-3 rounded-xl border border-rose-200 bg-rose-50/20 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all text-sm font-medium">
-                    <p class="mt-1 text-[11px] text-slate-400">İlan başlığında bu kelimelerden biri bile geçerse otomatik elenir.</p>
+                    <input type="url" id="search_url" name="search_url"
+                        placeholder="https://www.sahibinden.com/... (Boş bırakırsanız yukarıdaki filtrelerden otomatik üretilir)"
+                        class="block w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
                 </div>
             </div>
 
@@ -117,12 +268,30 @@
                     Vazgeç
                 </a>
                 <button type="submit"
-                    class="flex items-center px-6 py-3 rounded-xl shadow-lg shadow-amber-400/25 text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 active:scale-[0.99] transition-all">
-                    <i class="fa-solid fa-bell mr-2"></i> Alarmı Başlat
+                    class="flex items-center px-8 py-3.5 rounded-xl shadow-lg shadow-amber-400/25 text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 active:scale-[0.99] transition-all">
+                    <i class="fa-solid fa-bell mr-2"></i> Kapsamlı Alarmı Başlat
                 </button>
             </div>
         </form>
 
     </div>
 </div>
+
+<script>
+function toggleCategoryFields(category) {
+    const vasitaDiv = document.getElementById('vasita-filters');
+    const emlakDiv = document.getElementById('emlak-filters');
+
+    if (category === 'vasita') {
+        vasitaDiv.classList.remove('hidden');
+        emlakDiv.classList.add('hidden');
+    } else if (category === 'emlak') {
+        vasitaDiv.classList.add('hidden');
+        emlakDiv.classList.remove('hidden');
+    } else {
+        vasitaDiv.classList.add('hidden');
+        emlakDiv.classList.add('hidden');
+    }
+}
+</script>
 {% endblock %}
