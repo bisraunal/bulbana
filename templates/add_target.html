@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni İlan Alarmı Ekle — BulBana{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-6 px-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-6">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-5">
+            <div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center">
+                    🎯 Yeni İlan Alarmı Kur
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                    Aradığın kriterleri belirle, Sahibinden'e bu ilandan düştüğü an yakalayalım.
+                </p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="text-xs font-bold text-slate-500 hover:text-slate-900 bg-slate-100 px-3 py-2 rounded-xl">
+                <i class="fa-solid fa-arrow-left mr-1"></i> İptal
+            </a>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" action="{% url 'add_target' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Title & Category -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="title" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Alarm Başlığı <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="title" name="title" required
+                        placeholder="Örn: Kırmızı Hasarsız Clio 2018+"
+                        class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
+                </div>
+
+                <div>
+                    <label for="category" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Kategori <span class="text-rose-500">*</span>
+                    </label>
+                    <select id="category" name="category"
+                        class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
+                        <option value="vasita">🚗 Vasıta (Otomobil / Araç)</option>
+                        <option value="emlak">🏠 Emlak (Konut / Kiralık / Satılık)</option>
+                        <option value="ikinci_el">📱 İkinci El & Alışveriş</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sahibinden Search URL -->
+            <div>
+                <label for="search_url" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Sahibinden Arama / Filtre Linki <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-amber-500">
+                        <i class="fa-solid fa-link"></i>
+                    </div>
+                    <input type="url" id="search_url" name="search_url" required
+                        placeholder="https://www.sahibinden.com/renault-clio..."
+                        class="block w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
+                </div>
+                <p class="mt-1.5 text-xs text-slate-400">
+                    💡 Sahibinden sitesinde istediğiniz filtreleri (marka, ilçe vb.) seçip arama yaptıktan sonra tarayıcınızdaki arama linkini buraya yapıştırın.
+                </p>
+            </div>
+
+            <!-- Price Range -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="min_price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Minimum Fiyat (TL)
+                    </label>
+                    <input type="number" id="min_price" name="min_price" step="1000"
+                        placeholder="Örn: 400000"
+                        class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
+                </div>
+
+                <div>
+                    <label for="max_price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Maksimum Fiyat (TL)
+                    </label>
+                    <input type="number" id="max_price" name="max_price" step="1000"
+                        placeholder="Örn: 750000"
+                        class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
+                </div>
+            </div>
+
+            <!-- Keywords & Negative Keywords -->
+            <div class="space-y-4 pt-2">
+                <div>
+                    <label for="keywords" class="block text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 flex items-center">
+                        <i class="fa-solid fa-check-double mr-1.5 text-emerald-500"></i> Aranan Kelimeler (Pozitif Filtre)
+                    </label>
+                    <input type="text" id="keywords" name="keywords"
+                        placeholder="kırmızı, hatasız, boyasız, otomatik (Virgülle ayırın)"
+                        class="block w-full px-4 py-3 rounded-xl border border-emerald-200 bg-emerald-50/20 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all text-sm font-medium">
+                    <p class="mt-1 text-[11px] text-slate-400">İlan başlığında bu kelimelerden en az biri geçmelidir.</p>
+                </div>
+
+                <div>
+                    <label for="negative_keywords" class="block text-xs font-bold text-rose-700 uppercase tracking-wider mb-2 flex items-center">
+                        <i class="fa-solid fa-ban mr-1.5 text-rose-500"></i> Hariç Tutulacak Kelimeler (Negatif Filtre)
+                    </label>
+                    <input type="text" id="negative_keywords" name="negative_keywords"
+                        placeholder="ağır hasar, pert, taksi çıkması, tramerli (Virgülle ayırın)"
+                        class="block w-full px-4 py-3 rounded-xl border border-rose-200 bg-rose-50/20 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition-all text-sm font-medium">
+                    <p class="mt-1 text-[11px] text-slate-400">İlan başlığında bu kelimelerden biri bile geçerse otomatik elenir.</p>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                <a href="{% url 'dashboard' %}" class="px-5 py-3 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">
+                    Vazgeç
+                </a>
+                <button type="submit"
+                    class="flex items-center px-6 py-3 rounded-xl shadow-lg shadow-amber-400/25 text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 active:scale-[0.99] transition-all">
+                    <i class="fa-solid fa-bell mr-2"></i> Alarmı Başlat
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

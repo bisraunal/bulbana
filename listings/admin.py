@@ -1,37 +1,22 @@
 from django.contrib import admin
-from .models import Category, Listing, UserPreference, ListingInteraction, ChatbotFeedback
-
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'icon')
-    prepopulated_fields = {'slug': ('name',)}
-    search_fields = ('name',)
+from .models import UserProfile, SearchTarget, ScrapedListing
 
 
-@admin.register(Listing)
-class ListingAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'price', 'city', 'district', 'is_active', 'created_at')
-    list_filter = ('category', 'city', 'is_active', 'created_at')
-    search_fields = ('title', 'description', 'city', 'district')
-    list_editable = ('price', 'is_active')
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('username', 'telegram_chat_id', 'created_at')
+    search_fields = ('username', 'telegram_chat_id')
 
 
-@admin.register(UserPreference)
-class UserPreferenceAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'category', 'min_price', 'max_price', 'target_city', 'priority', 'created_at')
-    list_filter = ('category', 'priority', 'target_city', 'created_at')
-    search_fields = ('title', 'keywords', 'target_city', 'target_district')
+@admin.register(SearchTarget)
+class SearchTargetAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'category', 'is_active', 'last_checked_at', 'created_at')
+    list_filter = ('is_active', 'category', 'created_at')
+    search_fields = ('title', 'user__username', 'keywords', 'negative_keywords')
 
 
-@admin.register(ListingInteraction)
-class ListingInteractionAdmin(admin.ModelAdmin):
-    list_display = ('listing', 'user', 'session_key', 'action_type', 'created_at')
-    list_filter = ('action_type', 'created_at')
-
-
-@admin.register(ChatbotFeedback)
-class ChatbotFeedbackAdmin(admin.ModelAdmin):
-    list_display = ('feedback_type', 'user', 'session_key', 'user_query', 'created_at')
-    list_filter = ('feedback_type', 'created_at')
-    search_fields = ('user_query', 'bot_reply')
-
+@admin.register(ScrapedListing)
+class ScrapedListingAdmin(admin.ModelAdmin):
+    list_display = ('external_id', 'title', 'price', 'target', 'is_notified', 'created_at')
+    list_filter = ('is_notified', 'created_at')
+    search_fields = ('external_id', 'title', 'location')

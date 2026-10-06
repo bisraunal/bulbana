@@ -2,14 +2,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.home_view, name='home'),
-    path('listings/', views.listing_list_view, name='listing_list'),
-    path('listings/<int:listing_id>/', views.listing_detail_view, name='listing_detail'),
-    path('recommendations/', views.recommendations_view, name='recommendations'),
-    path('preference/new/', views.create_preference_view, name='create_preference'),
-    path('api/listings/<int:listing_id>/favorite/', views.toggle_favorite_ajax_view, name='toggle_favorite_ajax'),
-    path('api/listings/<int:listing_id>/negotiation-offer/', views.ai_generate_negotiation_ajax_view, name='ai_generate_negotiation_ajax'),
-    path('api/listings/compare/', views.ai_compare_listings_ajax_view, name='ai_compare_listings_ajax'),
-    path('api/chatbot/', views.chatbot_assistant_ajax_view, name='chatbot_assistant_ajax'),
-    path('api/chatbot/feedback/', views.chatbot_feedback_ajax_view, name='chatbot_feedback_ajax'),
+    path('', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('targets/add/', views.add_target_view, name='add_target'),
+    path('targets/<int:target_id>/toggle/', views.toggle_target_view, name='toggle_target'),
+    path('targets/<int:target_id>/delete/', views.delete_target_view, name='delete_target'),
+    path('targets/<int:target_id>/scan/', views.scan_target_manual_view, name='scan_target'),
 ]
