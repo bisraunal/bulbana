@@ -7,7 +7,6 @@ import re
 import sys
 import urllib.parse
 from pathlib import Path
-import dj_database_url
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,7 +21,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-bulbana-smart-recommender-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
     'http://localhost:8000',
@@ -75,20 +74,57 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-def sanitize_database_url(url_str: str) -> str:
+def parse_database_url_safely(url_str: str) -> dict:
     """
-    Supabase veya PostgreSQL sifrelerinde yer alan ozel karakterleri (#, @, !, *, % vb.)
-    otomatik URL-Encode ederek dj_database_url ParseError hatalarini onler.
+    DATABASE_URL linkini parse ederken sifredeki ozel karakterlerden kaynaklanan
+    tum ParseError hatalarini kokten engeller. Standart Django DB sozluk yapisi dondurur.
     """
-    if not url_str:
-        return url_str
-    pattern = r'^(postgres(?:ql)?:\/\/[^:]+:)(.*)(@[^@]+)$'
-    match = re.match(pattern, url_str.strip())
+    if not url_str or not url_str.strip():
+        return {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+
+    url_str = url_str.strip()
+    
+    # SQLite kontrolu
+    if url_str.startswith('sqlite'):
+        return {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+
+    # PostgreSQL: postgresql://USER:PASSWORD@HOST:PORT/DBNAME
+    pattern = r'^postgres(?:ql)?:\/\/([^:]+):(.*)@([^:\/]+)(?::(\d+))?\/(.+)$'
+    match = re.match(pattern, url_str)
+    
     if match:
-        prefix, password, suffix = match.groups()
-        safe_password = urllib.parse.quote(urllib.parse.unquote(password), safe='')
-        return f"{prefix}{safe_password}{suffix}"
-    return url_str.strip()
+        user, raw_password, host, port, db_part = match.groups()
+        
+        # db_part icindeki ?sslmode=... query parametrelerini temizle
+        dbname = db_part.split('?')[0] if db_part else 'postgres'
+        
+        # Sifreyi unquote et (eger URL-encode edilmisse saf hale getir)
+        clean_password = urllib.parse.unquote(raw_password)
+
+        return {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': dbname,
+            'USER': urllib.parse.unquote(user),
+            'PASSWORD': clean_password,
+            'HOST': host,
+            'PORT': port or '5432',
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {
+                'sslmode': 'require',
+            }
+        }
+
+    # Fallback to sqlite
+    return {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 
 # Database Configuration
@@ -101,30 +137,9 @@ if 'test' in sys.argv:
     }
 else:
     raw_db_url = os.getenv('DATABASE_URL')
-    if raw_db_url:
-        clean_db_url = sanitize_database_url(raw_db_url)
-        try:
-            DATABASES = {
-                'default': dj_database_url.config(
-                    default=clean_db_url,
-                    conn_max_age=600,
-                    ssl_require=True
-                )
-            }
-        except Exception:
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': BASE_DIR / 'db.sqlite3',
-                }
-            }
-    else:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+    DATABASES = {
+        'default': parse_database_url_safely(raw_db_url)
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
