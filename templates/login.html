@@ -1,7 +1,7 @@
-{% load static %}
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Giriş Yap — BulBana İlan Takip{% endblock %}
+{% block title %}Giris Yap — BulBana Ilan Takip{% endblock %}
 
 {% block content %}
 <div class="min-h-[75vh] flex items-center justify-center py-10 px-4">
@@ -13,10 +13,10 @@
                 <img src="{% static 'images/symbol.svg' %}" alt="BulBana Logo" class="w-16 h-16">
             </div>
             <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                BulBana'ya Hoş Geldin!
+                BulBana'ya Hos Geldin!
             </h2>
             <p class="text-sm text-slate-500 leading-relaxed">
-                Sahibinden'de aradığın kırmızı arabayı veya fırsat evi takip et, yeni ilan yayınlandığı an cebine bildirim gelsin.
+                Sahibinden'de aradigin ozel kriterli ilani takip et, yeni ilan yayinlandigi an cebine bildirim gelsin.
             </p>
         </div>
 
@@ -26,17 +26,17 @@
 
             <div>
                 <label for="username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                    Kullanıcı Adınız <span class="text-rose-500">*</span>
+                    Kullanici Adiniz <span class="text-rose-500">*</span>
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <i class="fa-solid fa-user"></i>
                     </div>
                     <input type="text" id="username" name="username" required autofocus
-                        placeholder="Örn: busra"
+                        placeholder="Orn: busra"
                         class="block w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
                 </div>
-                <p class="mt-1.5 text-xs text-slate-400">Şifre gerekmez, size özel alarmlar kullanıcı adınızda saklanır.</p>
+                <p class="mt-1.5 text-xs text-slate-400">Sifre gerekmez, size ozel alarmlar kullanici adinizda saklanir.</p>
             </div>
 
             <div>
@@ -45,7 +45,7 @@
                         Telegram Chat ID (Opsiyonel)
                     </label>
                     <span class="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
-                        Ücretsiz Bildirim
+                        Ucretsiz Bildirim
                     </span>
                 </div>
                 <div class="relative">
@@ -53,17 +53,17 @@
                         <i class="fa-brands fa-telegram"></i>
                     </div>
                     <input type="text" id="telegram_chat_id" name="telegram_chat_id"
-                        placeholder="Örn: 123456789"
+                        placeholder="Orn: 123456789"
                         class="block w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:bg-white transition-all text-sm font-medium">
                 </div>
                 <p class="mt-1.5 text-xs text-slate-500">
-                    💡 Telegram'da <a href="https://t.me/userinfobot" target="_blank" class="text-sky-600 font-semibold underline">@userinfobot</a> botuna <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">/start</code> yazarak ID'nizi ücretsiz öğrenebilirsiniz.
+                    Telegram'da <a href="https://t.me/userinfobot" target="_blank" class="text-sky-600 font-semibold underline">@userinfobot</a> botuna <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">/start</code> yazarak ID'nizi ogrenebilirsiniz.
                 </p>
             </div>
 
             <button type="submit"
                 class="w-full mt-2 flex items-center justify-center py-3.5 px-4 rounded-xl shadow-lg shadow-amber-400/25 text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 active:scale-[0.99] transition-all">
-                Paneli Aç ve İlanları Gör <i class="fa-solid fa-arrow-right ml-2"></i>
+                Paneli Ac ve Ilanlari Gor <i class="fa-solid fa-arrow-right ml-2"></i>
             </button>
         </form>
 
