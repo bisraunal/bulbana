@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="logoAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon Mark (Left) -->
+  <rect x="10" y="10" width="80" height="80" rx="24" fill="#0F172A"/>
+  <rect x="12" y="12" width="76" height="76" rx="22" fill="none" stroke="#334155" stroke-width="2"/>
+  
+  <!-- Radar Target Ring -->
+  <circle cx="48" cy="48" r="20" fill="none" stroke="url(#logoAmber)" stroke-width="6"/>
+  <line x1="62" y1="62" x2="76" y2="76" stroke="url(#logoAmber)" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="48" cy="48" r="7" fill="url(#logoAmber)"/>
+  <circle cx="70" cy="28" r="5" fill="#10B981"/>
+
+  <!-- Wordmark Typography -->
+  <text x="106" y="62" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="44" fill="#FFFFFF" letter-spacing="-1">Bul<tspan fill="#F59E0B">Bana</tspan></text>
+</svg>

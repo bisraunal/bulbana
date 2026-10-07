@@ -1,0 +1,404 @@
+/* ==========================================================================
+   BulBana - Sade, Net & Sahibinden Temalı Akıllı İlan Platformu
+   ========================================================================== */
+
+:root {
+  --sh-yellow: #FFE800;         /* İkonik Sahibinden Sarısı */
+  --sh-yellow-dark: #F5DE00;
+  --sh-navy: #1F2C39;           /* Klasik Sahibinden Koyu Lacivert */
+  --sh-navy-light: #2E3E4E;
+  --sh-blue: #0070BA;           /* Link & Vurgu Mavisi */
+  --sh-blue-hover: #005a96;
+  --sh-bg: #F8FAFC;             /* Sade, Ferah Arka Plan */
+  --sh-card-bg: #FFFFFF;
+  --sh-border: #E2E8F0;         /* Zarif, İnce Çerçeve */
+  --sh-text: #1E293B;           /* Net, Okunaklı Metin Rengi */
+  --sh-text-muted: #64748B;
+  --sh-green: #10B981;          /* Tescil / Güven Yeşili */
+  --sh-red: #EF4444;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--sh-bg);
+  color: var(--sh-text);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   Sade & Net Header
+   ========================================================================== */
+.sh-top-header {
+  background-color: var(--sh-yellow);
+  padding: 0.65rem 0;
+  border-bottom: 2px solid var(--sh-yellow-dark);
+}
+
+.sh-brand-logo {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--sh-navy) !important;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: -1px;
+}
+
+.sh-brand-logo .logo-badge {
+  background: var(--sh-navy);
+  color: var(--sh-yellow);
+  padding: 0.05rem 0.45rem;
+  border-radius: var(--radius-sm);
+  font-size: 1.15rem;
+  margin: 0 1px;
+}
+
+.sh-search-bar {
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+}
+
+.sh-search-bar input {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  font-size: 0.92rem;
+  padding: 0.45rem 0.85rem;
+}
+
+.sh-search-bar button {
+  background: var(--sh-navy);
+  color: #fff;
+  border: none;
+  padding: 0.45rem 1.25rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: background 0.15s;
+}
+
+.sh-search-bar button:hover {
+  background: var(--sh-navy-light);
+}
+
+.sh-subnav {
+  background-color: var(--sh-navy);
+  padding: 0.35rem 0;
+}
+
+.sh-subnav .nav-link {
+  color: #E2E8F0 !important;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.sh-subnav .nav-link:hover, .sh-subnav .nav-link.active {
+  color: var(--sh-yellow) !important;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ==========================================================================
+   Doğruluk & Tescil Rozetleri (Sade & Net)
+   ========================================================================== */
+.sh-badge-verified {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sh-badge-price-diff {
+  background: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================================================
+   İlan Tablosu (Sahibinden Klasik Tablo Görünümü)
+   ========================================================================== */
+.sh-table-view {
+  background: #fff;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--radius-sm);
+  width: 100%;
+}
+
+.sh-table-view th {
+  background: #EAEEF2;
+  color: var(--sh-navy);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 2px solid var(--sh-border);
+}
+
+.sh-table-view td {
+  padding: 0.75rem 0.85rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--sh-border);
+  font-size: 0.9rem;
+}
+
+.sh-table-view tr:hover td {
+  background-color: #FEFDE8;
+}
+
+.sh-thumb {
+  width: 90px;
+  height: 65px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid #ddd;
+}
+
+/* ==========================================================================
+   İlan Kartı (Grid Görünümü)
+   ========================================================================== */
+.sh-card {
+  background: var(--sh-card-bg);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease-in-out;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sh-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #BDC3C7;
+  transform: translateY(-2px);
+}
+
+.sh-card-img-wrap {
+  position: relative;
+  height: 180px;
+  background: #e9ecef;
+}
+
+.sh-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sh-card-price {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--sh-navy);
+}
+
+.btn-fav-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-fav-icon:hover, .btn-fav-icon.active {
+  color: var(--sh-red);
+  transform: scale(1.15);
+}
+
+/* ==========================================================================
+   🤖 Yüzen Chatbot Asistan Widget
+   ========================================================================== */
+.chatbot-widget-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--sh-yellow);
+  color: var(--sh-navy);
+  border: 2px solid var(--sh-navy);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  border-radius: 50px;
+  padding: 0.75rem 1.4rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  z-index: 9999;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chatbot-widget-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+  background: var(--sh-yellow-dark);
+}
+
+.chatbot-box {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  height: 540px;
+  background: #ffffff;
+  border: 2px solid var(--sh-navy);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+  display: none;
+  flex-direction: column;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.chatbot-box.active {
+  display: flex;
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chatbot-header {
+  background: var(--sh-navy);
+  color: #fff;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chatbot-body {
+  flex-grow: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  background: #F8F9FA;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-msg {
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  max-width: 85%;
+  line-height: 1.4;
+}
+
+.chat-msg-bot {
+  background: #FFFFFF;
+  color: var(--sh-navy);
+  border: 1px solid var(--sh-border);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.chat-msg-user {
+  background: var(--sh-navy);
+  color: #FFFFFF;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.chatbot-card-mini {
+  background: #fff;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  margin-top: 0.4rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chatbot-card-mini img {
+  width: 60px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.chatbot-footer {
+  padding: 0.75rem;
+  background: #fff;
+  border-top: 1px solid var(--sh-border);
+}
+
+/* Chatbot Yanıt Puanlama (👍 / 👎) */
+.chat-feedback-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.btn-feedback {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+}
+
+.btn-feedback:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.btn-feedback.active-positive {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border-color: #86efac !important;
+}
+
+.btn-feedback.active-negative {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border-color: #fca5a5 !important;
+}
+
