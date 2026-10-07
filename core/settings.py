@@ -3,6 +3,9 @@ Django settings for BulBana (Sahibinden Akıllı İlan Öneri & Eşleştirme Pla
 """
 
 import os
+import re
+import sys
+import urllib.parse
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
@@ -71,8 +74,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database Configuration (Supabase PostgreSQL with SQLite fallback & in-memory test runner)
-import sys
+
+def sanitize_database_url(url_str: str) -> str:
+    """
+    Supabase veya PostgreSQL sifrelerinde yer alan ozel karakterleri (#, @, !, *, % vb.)
+    otomatik URL-Encode ederek dj_database_url ParseError hatalarini onler.
+    """
+    if not url_str:
+        return url_str
+    pattern = r'^(postgres(?:ql)?:\/\/[^:]+:)(.*)(@[^@]+)$'
+    match = re.match(pattern, url_str.strip())
+    if match:
+        prefix, password, suffix = match.groups()
+        safe_password = urllib.parse.quote(urllib.parse.unquote(password), safe='')
+        return f"{prefix}{safe_password}{suffix}"
+    return url_str.strip()
+
+
+# Database Configuration
 if 'test' in sys.argv:
     DATABASES = {
         'default': {
@@ -81,15 +100,24 @@ if 'test' in sys.argv:
         }
     }
 else:
-    DATABASE_URL = os.getenv('DATABASE_URL')
-    if DATABASE_URL:
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600,
-                ssl_require=True
-            )
-        }
+    raw_db_url = os.getenv('DATABASE_URL')
+    if raw_db_url:
+        clean_db_url = sanitize_database_url(raw_db_url)
+        try:
+            DATABASES = {
+                'default': dj_database_url.config(
+                    default=clean_db_url,
+                    conn_max_age=600,
+                    ssl_require=True
+                )
+            }
+        except Exception:
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.sqlite3',
+                    'NAME': BASE_DIR / 'db.sqlite3',
+                }
+            }
     else:
         DATABASES = {
             'default': {
@@ -153,4 +181,3 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
