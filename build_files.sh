@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-echo "Installing dependencies with --break-system-packages..."
-python3 -m pip install --break-system-packages -r requirements.txt
+echo "Creating isolated virtual environment..."
+python3 -m venv .venv
+source .venv/bin/activate
+
+echo "Installing requirements..."
+pip install --upgrade pip
+pip install -r requirements.txt
 
 echo "Collecting static files..."
-python3 manage.py collectstatic --noinput --clear
+python manage.py collectstatic --noinput --clear
 
-echo "Running migrations..."
-python3 manage.py migrate --noinput
+echo "Build successfully completed!"
