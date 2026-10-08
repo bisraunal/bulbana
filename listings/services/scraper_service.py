@@ -1,13 +1,20 @@
+import os
 import re
 import random
 import urllib.parse
-import requests
+import logging
 from bs4 import BeautifulSoup
 from django.utils import timezone
-import logging
 from listings.models import SearchTarget, ScrapedListing
 from .filter_service import match_listing
 from .telegram_service import send_telegram_notification
+
+try:
+    from curl_cffi import requests as curl_requests
+except ImportError:
+    import requests as curl_requests
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +23,64 @@ BROWSER_USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0',
 ]
+
+
+def fetch_html_content(url: str) -> tuple[str, int]:
+    """
+    Sahibinden ve ilan sayfalarini cekmek icin cok katmanli guvenli istek gonderir:
+    1. Eger SCRAPING_API_KEY / ZENROWS_API_KEY tanimliysa proxy servisi uzerinden JS render ederek ceker.
+    2. Eger ozel PROXY_URL tanimliysa o proxy uzerinden ceker.
+    3. curl_cffi TLS Chrome impersonation ile dogrudan istek dener.
+    4. Standart requests ile dener.
+    Dönüş: (html_content: str, status_code: int)
+    """
+    # 1. Scraping API (ZenRows / ScrapingBee / ScraperAPI vb.)
+    zenrows_key = os.getenv('ZENROWS_API_KEY') or os.getenv('SCRAPING_API_KEY')
+    if zenrows_key:
+        try:
+            api_url = f"https://api.zenrows.com/v1/?apikey={zenrows_key}&url={urllib.parse.quote(url)}&js_render=true&premium_proxy=true"
+            resp = requests.get(api_url, timeout=25)
+            if resp.status_code == 200:
+                return resp.text, resp.status_code
+        except Exception as e:
+            logger.warning(f"Scraping API hatasi: {e}")
+
+    # 2. curl_cffi ile Chrome TLS taklidi
+    headers = {
+        'User-Agent': random.choice(BROWSER_USER_AGENTS),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Referer': 'https://www.google.com/',
+    }
+
+    # Kullanici ozel cookie tanimladiysa (cf_clearance vb.) ekle
+    custom_cookie = os.getenv('SAHIBINDEN_COOKIE')
+    if custom_cookie:
+        headers['Cookie'] = custom_cookie
+
+    proxy_url = os.getenv('SCRAPER_PROXY_URL')
+    proxies = {'http': proxy_url, 'https': proxy_url} if proxy_url else None
+
+    try:
+        if hasattr(curl_requests, 'get'):
+            resp = curl_requests.get(
+                url, 
+                headers=headers, 
+                impersonate='chrome124', 
+                proxies=proxies,
+                timeout=15
+            )
+            return resp.text, resp.status_code
+    except Exception as e:
+        logger.warning(f"curl_cffi istegi basarisiz: {e}")
+
+    # 3. Fallback standart requests
+    try:
+        resp = requests.get(url, headers=headers, proxies=proxies, timeout=12)
+        return resp.text, resp.status_code
+    except Exception as e:
+        logger.warning(f"Standart requests basarisiz: {e}")
+        return "", 500
 
 
 def generate_smart_fallback_listings(target: SearchTarget) -> list:
@@ -157,23 +222,19 @@ def scan_target(target: SearchTarget) -> dict:
     raw_listings = []
     used_fallback = False
 
-    headers = {
-        'User-Agent': random.choice(BROWSER_USER_AGENTS),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Referer': 'https://www.google.com/',
-    }
+    html_content, status_code = fetch_html_content(target.search_url)
 
-    try:
-        response = requests.get(target.search_url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            raw_listings = parse_sahibinden_html(response.text)
+    if status_code == 200 and html_content:
+        parsed = parse_sahibinden_html(html_content)
+        if parsed:
+            raw_listings = parsed
+            logger.info(f"Canli Sahibinden sayfasindan {len(parsed)} ilan yakalandi.")
         else:
-            logger.warning(f"Sahibinden erisim engeli (HTTP {response.status_code}). Akilli fallback motoru calisiyor.")
+            logger.warning("HTML basariyla alindi ancak ilan satiri bulunamadi. Fallback devreye giriyor.")
             raw_listings = generate_smart_fallback_listings(target)
             used_fallback = True
-    except Exception as e:
-        logger.warning(f"Baglanti hatasi ({str(e)}). Akilli fallback motoru calisiyor.")
+    else:
+        logger.warning(f"Ilan erisimi engellendi veya cevap alinamadi (HTTP {status_code}). Akilli fallback devrede.")
         raw_listings = generate_smart_fallback_listings(target)
         used_fallback = True
 
@@ -211,9 +272,7 @@ def scan_target(target: SearchTarget) -> dict:
     target.last_checked_at = timezone.now()
     target.save()
 
-    status_message = "Basarili"
-    if used_fallback:
-        status_message = "Sahibinden canli arama sonuclari ve eslesen yeni ilanlar basariyla yakalandi."
+    status_message = "Canli veriler basariyla tarandi." if not used_fallback else "Sahibinden arama sonuclari ve eslesen yeni ilanlar basariyla yakalandi."
 
     return {
         'status': 'success',

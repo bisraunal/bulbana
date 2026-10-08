@@ -15,13 +15,13 @@ class Command(BaseCommand):
         parser.add_argument(
             '--interval',
             type=int,
-            default=5,
-            help='Dongu calisma araligi (dakika cinsinden, varsayilan: 5)'
+            default=10,
+            help='Dongu calisma araligi (dakika cinsinden, varsayilan: 10)'
         )
 
     def handle(self, *args, **options):
         is_loop = options.get('loop', False)
-        interval = options.get('interval', 5)
+        interval = options.get('interval', 10)
 
         self.stdout.write(self.style.SUCCESS("[BulBana] Ilan Tarama Motoru Baslatildi!"))
 
