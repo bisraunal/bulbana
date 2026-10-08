@@ -88,6 +88,7 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
     Sahibinden bot korumasi (403) veya test asamasinda;
     kullanicinin aradigi kriterlere uygun ornek ilanlar uretir ve
     linkleri her zaman calisan canli Sahibinden arama sonuclarina baglar.
+    Ayni ilanin tekrar tekrar bildirim atmasini engellemek icin sabit tekil ID kullanilir.
     """
     fc = target.filter_criteria or {}
     category = target.category
@@ -96,7 +97,7 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
     location = f"{city} / {town}"
 
     sample_items = []
-    base_id = int(timezone.now().timestamp()) % 10000000
+    target_id = target.id or 1
 
     if category == 'vasita':
         brand = fc.get('brand') or 'Renault'
@@ -116,7 +117,7 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
 
         # 1. Kriterlere tam uyan ornek ilan
         sample_items.append({
-            'external_id': f"sahibinden-{base_id + 1}",
+            'external_id': f"sahibinden-mock-{target_id}-1",
             'title': f"Sahibinden {year} Model {color} Hatasız Boyasız {brand} {model_name} {trans}",
             'price': f"{int(avg_price):,} TL".replace(',', '.'),
             'location': location,
@@ -127,7 +128,7 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
 
         # 2. Uygun fiyatli ikinci ornek ilan
         sample_items.append({
-            'external_id': f"sahibinden-{base_id + 2}",
+            'external_id': f"sahibinden-mock-{target_id}-2",
             'title': f"İlk Sahibinden Temiz {color} {brand} {model_name} {fuel} Bakımlı",
             'price': f"{int(avg_price * 0.95):,} TL".replace(',', '.'),
             'location': location,
@@ -147,7 +148,7 @@ def generate_smart_fallback_listings(target: SearchTarget) -> list:
         working_url = target.search_url or f"https://www.sahibinden.com/kelime-ile-arama?query_text={query_text}"
 
         sample_items.append({
-            'external_id': f"sahibinden-{base_id + 3}",
+            'external_id': f"sahibinden-mock-{target_id}-3",
             'title': f"{location} Merkezde Balkonlu Kombili Ferah {room} {prop_type}",
             'price': f"{int(avg_price):,} TL".replace(',', '.'),
             'location': location,
@@ -242,7 +243,12 @@ def scan_target(target: SearchTarget) -> dict:
     notified_count = 0
 
     for item in raw_listings:
-        if ScrapedListing.objects.filter(target=target, external_id=item['external_id']).exists():
+        # 1. Ayni ilan numarasi daha once kullaniciya bildirilmis mi kontrol et
+        if ScrapedListing.objects.filter(target__user=target.user, external_id=item['external_id']).exists():
+            continue
+
+        # 2. Ayni baslik ve fiyat ile daha once bildirim gitmis mi kontrol et
+        if ScrapedListing.objects.filter(target__user=target.user, title=item['title'], price=item['price']).exists():
             continue
 
         is_matched, reason = match_listing(item, target)
