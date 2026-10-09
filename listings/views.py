@@ -81,6 +81,39 @@ def dashboard_view(request):
     return render(request, 'dashboard.html', context)
 
 
+def profile_view(request):
+    """Kullanıcının profil ve Telegram bildirim ayarlarını düzenlemesini sağlar."""
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('login')
+
+    user = get_object_or_404(UserProfile, id=user_id)
+
+    if request.method == 'POST':
+        telegram_id = request.POST.get('telegram_chat_id', '').strip()
+        send_test = request.POST.get('send_test') == '1'
+
+        user.telegram_chat_id = telegram_id or None
+        user.save()
+
+        if telegram_id and send_test:
+            from .services.telegram_service import send_telegram_test_message
+            sent = send_telegram_test_message(telegram_id, user.username)
+            if sent:
+                messages.success(request, "Telegram Chat ID kaydedildi ve test bildirimi Telegram'ınıza başarıyla gönderildi!")
+            else:
+                messages.warning(request, "Telegram Chat ID kaydedildi fakat test mesajı iletilemedi. Lütfen @bulbana_takip_bot botunu başlatıp /start dediğinizden emin olun.")
+        else:
+            messages.success(request, "Profil bilgileriniz başarıyla güncellendi!")
+
+        return redirect('profile')
+
+    context = {
+        'user': user,
+    }
+    return render(request, 'profile.html', context)
+
+
 def add_target_view(request):
     """Tüm Sahibinden filtrelerini kapsayan gelişmiş arama kriteri / alarm ekleme."""
     user_id = request.session.get('user_id')

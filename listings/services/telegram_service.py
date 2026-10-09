@@ -57,3 +57,29 @@ def send_telegram_notification(chat_id: str, listing) -> bool:
     except Exception as e:
         logger.error(f"Telegram istek hatası: {str(e)}")
         return False
+
+
+def send_telegram_test_message(chat_id: str, username: str) -> bool:
+    """Kullanıcının Telegram bağlantısını test eden onay mesajı gönderir."""
+    token = os.getenv('TELEGRAM_BOT_TOKEN')
+    if not token or not chat_id:
+        return False
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        'chat_id': chat_id,
+        'text': (
+            f"👋 *Merhaba {username}!*\n\n"
+            f"✅ *BulBana* Telegram bildirim bağlantınız başarıyla kuruldu.\n"
+            f"Kriterlerinize uyan yeni bir Sahibinden ilanı yayınlandığında anında buradan bilgilendirileceksiniz."
+        ),
+        'parse_mode': 'Markdown'
+    }
+
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        res_data = response.json()
+        return bool(res_data.get('ok'))
+    except Exception as e:
+        logger.error(f"Telegram test mesajı hatası: {str(e)}")
+        return False

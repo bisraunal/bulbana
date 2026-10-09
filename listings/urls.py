@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('profile/', views.profile_view, name='profile'),
     path('targets/add/', views.add_target_view, name='add_target'),
     path('targets/<int:target_id>/toggle/', views.toggle_target_view, name='toggle_target'),
     path('targets/<int:target_id>/delete/', views.delete_target_view, name='delete_target'),

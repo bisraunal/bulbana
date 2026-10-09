@@ -5,7 +5,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from .models import UserProfile, SearchTarget, ScrapedListing
 from .services.filter_service import match_listing
 from .views import (
-    login_view, add_target_view, toggle_target_view,
+    login_view, profile_view, add_target_view, toggle_target_view,
     api_targets_view, api_listings_view, api_cron_scan_view
 )
 
@@ -87,3 +87,19 @@ class BulBanaCoreTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertEqual(data['status'], 'success')
+
+    def test_profile_update_flow(self):
+        user = UserProfile.objects.create(username="burak", telegram_chat_id=None)
+        request = self.factory.post('/profile/', {
+            'telegram_chat_id': '555123456',
+            'send_test': '0'
+        })
+        self._add_middleware(request)
+        request.session['user_id'] = user.id
+        request.session['username'] = user.username
+
+        response = profile_view(request)
+        self.assertEqual(response.status_code, 302)
+
+        user.refresh_from_db()
+        self.assertEqual(user.telegram_chat_id, '555123456')
