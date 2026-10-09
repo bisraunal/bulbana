@@ -3,20 +3,20 @@ from django.db import models
 
 class UserProfile(models.Model):
     """
-    Kullanici Profili Modeli.
-    Basit ve sifresiz giris icin kullanici adi ve Telegram bildirim ID'sini tutar.
+    Kullanıcı Profili Modeli.
+    Basit ve şifresiz giriş için kullanıcı adı ve Telegram bildirim ID'sini tutar.
     """
-    username = models.CharField(max_length=50, unique=True, verbose_name="Kullanici Adi")
+    username = models.CharField(max_length=50, unique=True, verbose_name="Kullanıcı Adı")
     telegram_chat_id = models.CharField(
         max_length=50, blank=True, null=True, 
         verbose_name="Telegram Chat ID",
-        help_text="Telegram botundan bildirim almak icin Chat ID bilgisi"
+        help_text="Telegram botundan bildirim almak için Chat ID bilgisi"
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Olusturulma Tarihi")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
 
     class Meta:
-        verbose_name = "Kullanici Profili"
-        verbose_name_plural = "Kullanici Profilleri"
+        verbose_name = "Kullanıcı Profili"
+        verbose_name_plural = "Kullanıcı Profilleri"
         ordering = ['-created_at']
 
     def __str__(self):
@@ -26,22 +26,22 @@ class UserProfile(models.Model):
 class SearchTarget(models.Model):
     """
     Arama Kriteri / Alarm Modeli.
-    Sahibinden uzerindeki Vasita, Emlak ve Ikinci El filtrelerini saklar.
+    Sahibinden üzerindeki Vasıta, Emlak ve İkinci El filtrelerini saklar.
     """
     CATEGORY_CHOICES = [
-        ('vasita', 'Vasita (Otomobil / Arac)'),
-        ('emlak', 'Emlak (Konut / Kiralik / Satilik)'),
-        ('ikinci_el', 'Ikinci El ve Alisveris'),
+        ('vasita', 'Vasıta (Otomobil / Araç)'),
+        ('emlak', 'Emlak (Konut / Kiralık / Satılık)'),
+        ('ikinci_el', 'İkinci El ve Alışveriş'),
     ]
 
     user = models.ForeignKey(
         UserProfile, on_delete=models.CASCADE, 
-        related_name="targets", verbose_name="Kullanici"
+        related_name="targets", verbose_name="Kullanıcı"
     )
     title = models.CharField(
         max_length=150, 
-        verbose_name="Alarm Basligi",
-        help_text="Orn: Kirmizi Hasarsiz Clio 2020, Kadikoy 2+1 Balkonlu Daire"
+        verbose_name="Alarm Başlığı",
+        help_text="Örn: Kırmızı Hasarsız Clio 2020, Kadıköy 2+1 Balkonlu Daire"
     )
     category = models.CharField(
         max_length=30, choices=CATEGORY_CHOICES, default='vasita',
@@ -49,10 +49,10 @@ class SearchTarget(models.Model):
     )
 
     # Lokasyon Filtreleri
-    city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Sehir / Il")
-    town = models.CharField(max_length=100, blank=True, null=True, verbose_name="Ilce")
+    city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Şehir / İl")
+    town = models.CharField(max_length=100, blank=True, null=True, verbose_name="İlçe")
 
-    # Fiyat Sinirlari
+    # Fiyat Sınırları
     min_price = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True,
         verbose_name="Min Fiyat (TL)"
@@ -66,30 +66,30 @@ class SearchTarget(models.Model):
     search_url = models.URLField(
         max_length=1000, blank=True, null=True,
         verbose_name="Sahibinden Arama URL'i",
-        help_text="Dogrudan filtrelenmis arama linki veya otomatik uretilen sorgu linki"
+        help_text="Doğrudan filtrelenmiş arama linki veya otomatik üretilen sorgu linki"
     )
 
-    # Tum ozel filtreleri tutan esnek JSON alani
+    # Tüm özel filtreleri tutan esnek JSON alanı
     filter_criteria = models.JSONField(
         default=dict, blank=True,
-        verbose_name="Gelismis Kriterler (JSON)"
+        verbose_name="Gelişmiş Kriterler (JSON)"
     )
 
-    # Ozel Kelime Filtreleri
+    # Özel Kelime Filtreleri
     keywords = models.TextField(
         blank=True, null=True,
         verbose_name="Aranan Kelimeler (Pozitif Filtre)",
-        help_text="Virgulle ayirin (Orn: kirmizi, hatasiz, boyasiz)"
+        help_text="Virgülle ayırın (Örn: kırmızı, hatasız, boyasız)"
     )
     negative_keywords = models.TextField(
         blank=True, null=True,
-        verbose_name="Istenmeyen Kelimeler (Negatif Filtre)",
-        help_text="Virgulle ayirin (Orn: agir hasar, pert, taksi cikmasi, bodrum kat)"
+        verbose_name="İstenmeyen Kelimeler (Negatif Filtre)",
+        help_text="Virgülle ayırın (Örn: ağır hasar, pert, taksi çıkması, bodrum kat)"
     )
 
     is_active = models.BooleanField(default=True, verbose_name="Alarm Aktif mi?")
-    last_checked_at = models.DateTimeField(null=True, blank=True, verbose_name="Son Tarama Zamani")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Olusturulma Tarihi")
+    last_checked_at = models.DateTimeField(null=True, blank=True, verbose_name="Son Tarama Zamanı")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
 
     class Meta:
         verbose_name = "Arama Kriteri (Alarm)"
@@ -100,7 +100,7 @@ class SearchTarget(models.Model):
         return f"{self.user.username} - {self.title}"
 
     def get_badge_list(self):
-        """Kartlarda ve bildirimlerde gosterilecek sade ozet rozetler."""
+        """Kartlarda ve bildirimlerde gösterilecek sade özet rozetler."""
         badges = []
         if self.city:
             loc = f"Konum: {self.city}"
@@ -130,19 +130,19 @@ class SearchTarget(models.Model):
             if fc.get('room_count'):
                 badges.append(fc['room_count'])
             if fc.get('m2_min'):
-                badges.append(f"Min {fc['m2_min']} m2")
+                badges.append(f"Min {fc['m2_min']} m²")
             if fc.get('balcony'):
                 badges.append("Balkonlu")
             if fc.get('furnished'):
-                badges.append("Esyali")
+                badges.append("Eşyalı")
 
         return badges
 
 
 class ScrapedListing(models.Model):
     """
-    Cekilen ve Eslesen Ilan Modeli.
-    Kullanicinin kriterine uyan ve Sahibinden'den tespit edilen ilanlari saklar.
+    Çekilen ve Eşleşen İlan Modeli.
+    Kullanıcının kriterine uyan ve Sahibinden'den tespit edilen ilanları saklar.
     """
     target = models.ForeignKey(
         SearchTarget, on_delete=models.CASCADE, 
@@ -150,26 +150,26 @@ class ScrapedListing(models.Model):
     )
     external_id = models.CharField(
         max_length=50,
-        verbose_name="Sahibinden Ilan No"
+        verbose_name="Sahibinden İlan No"
     )
-    title = models.CharField(max_length=255, verbose_name="Ilan Basligi")
+    title = models.CharField(max_length=255, verbose_name="İlan Başlığı")
     price = models.CharField(max_length=50, verbose_name="Fiyat")
-    location = models.CharField(max_length=150, blank=True, null=True, verbose_name="Konum / Sehir")
-    image_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="Kapak Gorseli Linki")
-    listing_url = models.URLField(max_length=500, verbose_name="Dogrudan Ilan Linki")
-    published_date = models.CharField(max_length=100, blank=True, null=True, verbose_name="Yayinlanma Tarihi")
+    location = models.CharField(max_length=150, blank=True, null=True, verbose_name="Konum / Şehir")
+    image_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="Kapak Görseli Linki")
+    listing_url = models.URLField(max_length=500, verbose_name="Doğrudan İlan Linki")
+    published_date = models.CharField(max_length=100, blank=True, null=True, verbose_name="Yayınlanma Tarihi")
     
-    # Ekstra yakalanan ozellikler (Yil, KM, Renk vb.)
-    attributes = models.JSONField(default=dict, blank=True, verbose_name="Ilan Ozellikleri")
+    # Ekstra yakalanan özellikler (Yıl, KM, Renk vb.)
+    attributes = models.JSONField(default=dict, blank=True, verbose_name="İlan Özellikleri")
 
     is_notified = models.BooleanField(
-        default=False, verbose_name="Bildirim Gonderildi mi?"
+        default=False, verbose_name="Bildirim Gönderildi mi?"
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Sisteme Eklenme Tarihi")
 
     class Meta:
-        verbose_name = "Eslesen Ilan"
-        verbose_name_plural = "Eslesen Ilanlar"
+        verbose_name = "Eşleşen İlan"
+        verbose_name_plural = "Eşleşen İlanlar"
         ordering = ['-created_at']
         unique_together = ('target', 'external_id')
 
