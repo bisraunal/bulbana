@@ -13,10 +13,10 @@
                     🎯 Yeni İlan Alarmı Kur
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-1">
-                    Sahibinden'deki tüm filtreleri (Marka, Model, Yıl, KM, Vites, Renk, Hasarsızlık, Oda vb.) eksiksiz belirleyin.
+                    Sahibinden'deki tüm filtreleri (İl, İlçe, Marka, Model, Yıl, KM, Vites, Renk, Hasarsızlık, Oda vb.) eksiksiz belirleyin.
                 </p>
             </div>
-            <a href="{% url 'dashboard' %}" class="text-xs font-bold text-slate-500 hover:text-slate-900 bg-slate-100 px-3 py-2 rounded-xl">
+            <a href="{% url 'dashboard' %}" class="text-xs font-bold text-slate-500 hover:text-slate-900 bg-slate-100 px-3 py-2 rounded-xl transition-colors">
                 <i class="fa-solid fa-arrow-left mr-1"></i> Vazgeç
             </a>
         </div>
@@ -28,7 +28,7 @@
             <!-- 1. Temel Bilgiler & Kategori Seçimi -->
             <div class="space-y-4">
                 <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
-                    <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2">1</span>
+                    <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2 font-bold">1</span>
                     Alarm Başlığı ve Kategori
                 </h3>
 
@@ -38,7 +38,7 @@
                             Alarm Başlığı <span class="text-rose-500">*</span>
                         </label>
                         <input type="text" id="title" name="title" required
-                            placeholder="Örn: Kırmızı Hasarsız Clio 2020+, Kadıköy 2+1 Balkonlu"
+                            placeholder="Örn: Bursa Nilüfer Kırmızı Clio, Kadıköy 2+1 Balkonlu"
                             class="block w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition-all text-sm font-medium">
                     </div>
 
@@ -56,87 +56,177 @@
                 </div>
             </div>
 
-            <!-- 2. Lokasyon & Fiyat Sınırları -->
+            <!-- 2. Lokasyon & Fiyat Sınırları (Önerilen İl / İlçe Otomatik Tamamlama) -->
             <div class="space-y-4 pt-2">
-                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
-                    <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2">2</span>
-                    Lokasyon ve Fiyat Aralığı
-                </h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
+                        <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2 font-bold">2</span>
+                        Lokasyon ve Fiyat Aralığı
+                    </h3>
+                    <span class="text-[11px] text-amber-600 bg-amber-50 font-semibold px-2 py-0.5 rounded-full">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Otomatik İl & İlçe Tamamlama
+                    </span>
+                </div>
+
+                <!-- Hızlı Şehir Butonları -->
+                <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span class="text-xs text-slate-500 font-medium mr-1">Hızlı Seçim:</span>
+                    <button type="button" onclick="selectCity('İstanbul')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-700 transition-colors">İstanbul</button>
+                    <button type="button" onclick="selectCity('Ankara')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-700 transition-colors">Ankara</button>
+                    <button type="button" onclick="selectCity('İzmir')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-700 transition-colors">İzmir</button>
+                    <button type="button" onclick="selectCity('Bursa')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-700 transition-colors">Bursa</button>
+                    <button type="button" onclick="selectCity('Antalya')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-700 transition-colors">Antalya</button>
+                    <button type="button" onclick="selectCity('Kocaeli')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-700 transition-colors">Kocaeli</button>
+                    <button type="button" onclick="selectCity('Adana')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-700 transition-colors">Adana</button>
+                </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- İl / Şehir -->
                     <div>
-                        <label for="city" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Şehir / İl</label>
-                        <input type="text" id="city" name="city" placeholder="Örn: İstanbul"
-                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
+                        <label for="city" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                            <span>Şehir / İl</span>
+                            <span class="text-[10px] text-slate-400 font-normal">81 İl Listesi</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="city" name="city" list="city-list"
+                                placeholder="Örn: Bursa, İstanbul"
+                                autocomplete="off"
+                                oninput="onCityChange(this.value)"
+                                class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-400 focus:outline-none transition-all">
+                            <datalist id="city-list">
+                                <!-- JavaScript ile 81 il doldurulur -->
+                            </datalist>
+                        </div>
                     </div>
+
+                    <!-- İlçe -->
                     <div>
-                        <label for="town" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">İlçe</label>
-                        <input type="text" id="town" name="town" placeholder="Örn: Kadıköy"
-                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
+                        <label for="town" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                            <span>İlçe</span>
+                            <span id="town-hint" class="text-[10px] text-slate-400 font-normal">İl seçilince güncellenir</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="town" name="town" list="town-list"
+                                placeholder="Örn: Nilüfer, Kadıköy"
+                                autocomplete="off"
+                                class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-400 focus:outline-none transition-all">
+                            <datalist id="town-list">
+                                <!-- Seçilen ile göre JavaScript ile dinamik dolar -->
+                            </datalist>
+                        </div>
                     </div>
+
+                    <!-- Min Fiyat -->
                     <div>
                         <label for="min_price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Min Fiyat (TL)</label>
                         <input type="number" id="min_price" name="min_price" placeholder="Örn: 400000"
-                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
+                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-amber-400 focus:outline-none transition-all">
                     </div>
+
+                    <!-- Max Fiyat -->
                     <div>
                         <label for="max_price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Max Fiyat (TL)</label>
                         <input type="number" id="max_price" name="max_price" placeholder="Örn: 750000"
-                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm">
+                            class="block w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-amber-400 focus:outline-none transition-all">
                     </div>
                 </div>
             </div>
 
-            <!-- 3. VASITA ÖZEL FİLTRELERİ -->
+            <!-- 3. VASITA ÖZEL FİLTRELERİ (Önerilen Marka & Model Tamamlama) -->
             <div id="vasita-filters" class="space-y-4 pt-2 bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80">
-                <h3 class="text-sm font-black text-blue-900 uppercase tracking-wider flex items-center">
-                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white inline-flex items-center justify-center text-xs mr-2">3</span>
-                    🚗 Vasıta / Otomobil Filtreleri
-                </h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-blue-900 uppercase tracking-wider flex items-center">
+                        <span class="w-6 h-6 rounded-full bg-blue-600 text-white inline-flex items-center justify-center text-xs mr-2 font-bold">3</span>
+                        🚗 Vasıta / Otomobil Filtreleri
+                    </h3>
+                    <span class="text-[11px] text-blue-600 bg-blue-50 font-semibold px-2 py-0.5 rounded-full">
+                        Akıllı Marka & Model Listesi
+                    </span>
+                </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Marka -->
                     <div>
                         <label for="brand" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Marka</label>
-                        <input type="text" id="brand" name="brand" placeholder="Örn: Renault, BMW, Volkswagen"
-                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                        <input type="text" id="brand" name="brand" list="brand-list"
+                            placeholder="Örn: Renault, Volkswagen, Fiat"
+                            autocomplete="off"
+                            oninput="onBrandChange(this.value)"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all">
+                        <datalist id="brand-list">
+                            <!-- JS ile doldurulur -->
+                        </datalist>
                     </div>
+
+                    <!-- Model -->
                     <div>
                         <label for="model_name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Seri / Model</label>
-                        <input type="text" id="model_name" name="model_name" placeholder="Örn: Clio, 320i, Golf"
-                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                        <input type="text" id="model_name" name="model_name" list="model-list"
+                            placeholder="Örn: Clio, Golf, Egea"
+                            autocomplete="off"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all">
+                        <datalist id="model-list">
+                            <!-- Seçilen markaya göre dinamik dolar -->
+                        </datalist>
                     </div>
+
+                    <!-- Renk -->
                     <div>
                         <label for="color" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">🎨 Renk</label>
-                        <input type="text" id="color" name="color" placeholder="Örn: Kırmızı, Beyaz, Siyah"
-                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                        <input type="text" id="color" name="color" list="color-list"
+                            placeholder="Örn: Kırmızı, Beyaz, Siyah"
+                            class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all">
+                        <datalist id="color-list">
+                            <option value="Beyaz"></option>
+                            <option value="Siyah"></option>
+                            <option value="Gri / Gümüş"></option>
+                            <option value="Kırmızı"></option>
+                            <option value="Mavi"></option>
+                            <option value="Lacivert"></option>
+                            <option value="Füme"></option>
+                            <option value="Sarı"></option>
+                            <option value="Yeşil"></option>
+                            <option value="Turuncu"></option>
+                            <option value="Kahverengi"></option>
+                        </datalist>
                     </div>
+
+                    <!-- Min Yıl -->
                     <div>
                         <label for="year_min" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Min Yıl</label>
                         <input type="number" id="year_min" name="year_min" placeholder="Örn: 2018"
                             class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
                     </div>
+
+                    <!-- Max Yıl -->
                     <div>
                         <label for="year_max" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Max Yıl</label>
                         <input type="number" id="year_max" name="year_max" placeholder="Örn: 2024"
                             class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
                     </div>
+
+                    <!-- Max KM -->
                     <div>
                         <label for="km_max" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Max KM</label>
                         <input type="number" id="km_max" name="km_max" placeholder="Örn: 100000"
                             class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
                     </div>
+
+                    <!-- Vites Tipi -->
                     <div>
                         <label for="transmission" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Vites Tipi</label>
-                        <select id="transmission" name="transmission" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                        <select id="transmission" name="transmission" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium">
                             <option value="">Fark Etmez (Tümü)</option>
                             <option value="Otomatik">Otomatik</option>
                             <option value="Manuel">Manuel</option>
                             <option value="Yarı Otomatik">Yarı Otomatik</option>
                         </select>
                     </div>
+
+                    <!-- Yakıt Tipi -->
                     <div>
                         <label for="fuel" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Yakıt Tipi</label>
-                        <select id="fuel" name="fuel" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                        <select id="fuel" name="fuel" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium">
                             <option value="">Fark Etmez (Tümü)</option>
                             <option value="Benzin">Benzin</option>
                             <option value="Dizel">Dizel</option>
@@ -145,6 +235,8 @@
                             <option value="LPG">LPG & Benzin</option>
                         </select>
                     </div>
+
+                    <!-- Hasar Durumu -->
                     <div>
                         <label for="damage_status" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Hasar / Ekspertiz Durumu</label>
                         <select id="damage_status" name="damage_status" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold text-emerald-700">
@@ -159,14 +251,14 @@
             <!-- 4. EMLAK ÖZEL FİLTRELERİ -->
             <div id="emlak-filters" class="hidden space-y-4 pt-2 bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80">
                 <h3 class="text-sm font-black text-emerald-900 uppercase tracking-wider flex items-center">
-                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white inline-flex items-center justify-center text-xs mr-2">3</span>
+                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white inline-flex items-center justify-center text-xs mr-2 font-bold">3</span>
                     🏠 Emlak / Konut Filtreleri
                 </h3>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                         <label for="prop_type" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tür</label>
-                        <select id="prop_type" name="prop_type" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                        <select id="prop_type" name="prop_type" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium">
                             <option value="Kiralık Daire">Kiralık Daire</option>
                             <option value="Satılık Daire">Satılık Daire</option>
                             <option value="Günlük Kiralık">Günlük Kiralık</option>
@@ -175,7 +267,7 @@
                     </div>
                     <div>
                         <label for="room_count" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Oda Sayısı</label>
-                        <select id="room_count" name="room_count" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm">
+                        <select id="room_count" name="room_count" class="block w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium">
                             <option value="">Fark Etmez</option>
                             <option value="1+1">1+1</option>
                             <option value="2+1">2+1</option>
@@ -223,7 +315,7 @@
             <!-- 5. Anahtar Kelime Filtreleri -->
             <div class="space-y-4 pt-2">
                 <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center">
-                    <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2">4</span>
+                    <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 inline-flex items-center justify-center text-xs mr-2 font-bold">4</span>
                     Özel Kelime Filtreleri
                 </h3>
 
@@ -234,7 +326,7 @@
                         </label>
                         <input type="text" id="keywords" name="keywords"
                             placeholder="Örn: kırmızı, hatasız, cam tavan, icon paket"
-                            class="block w-full px-3 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50/20 text-slate-900 text-sm">
+                            class="block w-full px-3 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50/20 text-slate-900 text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all">
                     </div>
                     <div>
                         <label for="negative_keywords" class="block text-xs font-bold text-rose-700 uppercase tracking-wider mb-1.5 flex items-center">
@@ -242,7 +334,7 @@
                         </label>
                         <input type="text" id="negative_keywords" name="negative_keywords"
                             placeholder="Örn: ağır hasar, pert, taksi çıkması, bodrum kat"
-                            class="block w-full px-3 py-2.5 rounded-xl border border-rose-200 bg-rose-50/20 text-slate-900 text-sm">
+                            class="block w-full px-3 py-2.5 rounded-xl border border-rose-200 bg-rose-50/20 text-slate-900 text-sm focus:ring-2 focus:ring-rose-400 focus:outline-none transition-all">
                     </div>
                 </div>
             </div>
@@ -278,6 +370,206 @@
 </div>
 
 <script>
+// ==========================================
+// TÜRKİYE İL & İLÇE VERİTABANI (81 İL)
+// ==========================================
+const TURKEY_LOCATIONS = {
+    "Adana": ["Seyhan", "Yüreğir", "Çukurova", "Sarıçam", "Ceyhan", "Kozan", "İmamoğlu", "Karataş", "Karaisalı", "Pozantı", "Yumurtalık", "Tufanbeyli", "Feke", "Aladağ", "Saimbeyli"],
+    "Adıyaman": ["Merkez", "Kahta", "Besni", "Gölbaşı", "Gerger", "Sincik", "Çelikhan", "Tut", "Samsat"],
+    "Afyonkarahisar": ["Merkez", "Sandıklı", "Dinar", "Bolvadin", "Sinanpaşa", "Emirdağ", "Şuhut", "Çay", "İscehisar", "Sultandağı", "İhsaniye", "Çobanlar", "Dazkırı", "Başmakçı", "Evciler", "Hocalar", "Kızılören"],
+    "Ağrı": ["Merkez", "Patnos", "Doğubayazıt", "Diyadin", "Eleşkirt", "Tutak", "Taşlıçay", "Hamur"],
+    "Aksaray": ["Merkez", "Ortaköy", "Eskil", "Gülağaç", "Güzelyurt", "Ağaçören", "Sarıyahşi", "Sultanhanı"],
+    "Amasya": ["Merkez", "Merzifon", "Suluova", "Taşova", "Gümüşhacıköy", "Göynücek", "Hamamözü"],
+    "Ankara": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan", "Altındağ", "Pursaklar", "Gölbaşı", "Polatlı", "Çubuk", "Kahramankazan", "Beypazarı", "Elmadağ", "Nallıhan", "Haymana", "Kızılcahamam", "Bala", "Ayaş", "Şereflikoçhisar", "Kalecik", "Güdül", "Çamlıdere", "Evren"],
+    "Antalya": ["Muratpaşa", "Kepez", "Konyaaltı", "Alanya", "Manavgat", "Serik", "Aksu", "Döşemealtı", "Kumluca", "Kaş", "Korkuteli", "Gazipaşa", "Finike", "Kemer", "Elmalı", "Demre", "Akseki", "Gündoğmuş", "İbradı"],
+    "Ardahan": ["Merkez", "Göle", "Çıldır", "Hanak", "Posof", "Damal"],
+    "Artvin": ["Merkez", "Hopa", "Borçka", "Yusufeli", "Arhavi", "Şavşat", "Ardanuç", "Murgul", "Kemalpaşa"],
+    "Aydın": ["Efeler", "Nazilli", "Söke", "Kuşadası", "Didim", "İncirliova", "Çine", "Germencik", "Bozdoğan", "Köşk", "Kuyucak", "Sultanhisar", "Karacasu", "Yenipazar", "Buharkent", "Karpuzlu", "Koçarlı"],
+    "Balıkesir": ["Karesi", "Altıeylül", "Bandırma", "Edremit", "Gönen", "Ayvalık", "Burhaniye", "Bigadiç", "Susurluk", "Dursunbey", "Sındırgı", "İvrindi", "Erdek", "Havran", "Kepsut", "Manyas", "Savaştepe", "Balya", "Gömeç", "Marmara"],
+    "Bartın": ["Merkez", "Ulus", "Amasra", "Kurucaşile"],
+    "Batman": ["Merkez", "Kozluk", "Sason", "Beşiri", "Gercüş", "Hasankeyf"],
+    "Bayburt": ["Merkez", "Demirözü", "Aydıntepe"],
+    "Bilecik": ["Merkez", "Bozüyük", "Osmaneli", "Söğüt", "Gölpazarı", "Pazaryeri", "İnhisar", "Yenipazar"],
+    "Bingöl": ["Merkez", "Genç", "Solhan", "Karlıova", "Adaklı", "Kiğı", "Yedisu", "Yayladere"],
+    "Bitlis": ["Tatvan", "Merkez", "Güroymak", "Ahlat", "Hizan", "Mutki", "Adilcevaz"],
+    "Bolu": ["Merkez", "Gerede", "Mudurnu", "Göynük", "Mengen", "Yeniçağa", "Dörtdivan", "Seben", "Kıbrıscık"],
+    "Burdur": ["Merkez", "Bucak", "Gölhisar", "Yeşilova", "Çavdır", "Tefenni", "Ağlasun", "Karamanlı", "Altınyayla", "Çeltikçi", "Kemer"],
+    "Bursa": ["Nilüfer", "Osmangazi", "Yıldırım", "İnegöl", "Mudanya", "Gemlik", "Mustafakemalpaşa", "Karacabey", "Orhangazi", "Gürsu", "Kestel", "İznik", "Yenişehir", "Orhaneli", "Keles", "Büyükorhan", "Harmancık"],
+    "Çanakkale": ["Merkez", "Biga", "Çan", "Gelibolu", "Yenice", "Ayvacık", "Ezine", "Bayramiç", "Lapseki", "Eceabat", "Gökçeada", "Bozcaada"],
+    "Çankırı": ["Merkez", "Çerkeş", "Ilgaz", "Orta", "Şabanözü", "Kurşunlu", "Yapraklı", "Kızılırmak", "Eldivan", "Atkaracalar", "Korgun", "Bayramören"],
+    "Çorum": ["Merkez", "Sungurlu", "Osmancık", "İskilip", "Alaca", "Bayat", "Mecitözü", "Kargı", "Ortaköy", "Uğurludağ", "Dodurga", "Oğuzlar", "Laçin", "Boğazkale"],
+    "Denizli": ["Pamukkale", "Merkezefendi", "Çivril", "Acıpayam", "Tavas", "Honaz", "Sarayköy", "Buldan", "Kale", "Çal", "Çameli", "Serinhisar", "Bozkurt", "Güney", "Çardak", "Bekilli", "Beyağaç", "Babadağ", "Baklan"],
+    "Diyarbakır": ["Bağlar", "Kayapınar", "Yenişehir", "Sur", "Ergani", "Bismil", "Silvan", "Çınar", "Çermik", "Dicle", "Kulp", "Hani", "Lice", "Eğil", "Hazro", "Kocaköy", "Çüngüş"],
+    "Düzce": ["Merkez", "Akçakoca", "Kaynaşlı", "Gölyaka", "Çilimli", "Yığılca", "Gümüşova", "Cumayeri"],
+    "Edirne": ["Merkez", "Keşan", "Uzunköprü", "İpsala", "Havsa", "Meriç", "Enez", "Süloğlu", "Lalapaşa"],
+    "Elazığ": ["Merkez", "Kovancılar", "Karakoçan", "Palu", "Arıcak", "Baskil", "Maden", "Sivrice", "Keban", "Alacakaya", "Ağın"],
+    "Erzincan": ["Merkez", "Tercan", "Üzümlü", "Çayırlı", "İliç", "Kemah", "Kemaliye", "Refahiye", "Otlukbeli"],
+    "Erzurum": ["Yakutiye", "Palandöken", "Aziziye", "Horasan", "Oltu", "Pasinler", "Karayazı", "Hınıs", "Tekman", "Karaçoban", "Aşkale", "Şenkaya", "Çat", "Köprüköy", "İspir", "Tortum", "Narman", "Uzundere", "Olur", "Pazaryolu"],
+    "Eskişehir": ["Odunpazarı", "Tepebaşı", "Sivrihisar", "Çifteler", "Seyitgazi", "Alpu", "Mihalıççık", "Mahmudiye", "Beylikova", "İnönü", "Günyüzü", "Han", "Mihalgazi", "Sarıcakaya"],
+    "Gaziantep": ["Şahinbey", "Şehitkamil", "Nizip", "İslahiye", "Nurdağı", "Araban", "Oğuzeli", "Yavuzeli", "Karkamış"],
+    "Giresun": ["Merkez", "Bulancak", "Espiye", "Görele", "Tirebolu", "Dereli", "Şebinkarahisar", "Keşap", "Yağlıdere", "Piraziz", "Eynesil", "Alucra", "Çamoluk", "Güce", "Doğankent", "Çanakçı"],
+    "Gümüşhane": ["Merkez", "Kelkit", "Şiran", "Kürtün", "Torul", "Köse"],
+    "Hakkari": ["Yüksekova", "Merkez", "Şemdinli", "Çukurca", "Derecik"],
+    "Hatay": ["Antakya", "İskenderun", "Defne", "Dörtyol", "Samandağ", "Kırıkhan", "Reyhanlı", "Arsuz", "Altınözü", "Hassa", "Erzin", "Payas", "Belen", "Yayladağı", "Kumlu"],
+    "Iğdır": ["Merkez", "Tuzluca", "Aralık", "Karakoyunlu"],
+    "Isparta": ["Merkez", "Yalvaç", "Eğirdir", "Şarkikaraağaç", "Gelendost", "Keçiborlu", "Senirkent", "Sütçüler", "Gönen", "Uluborlu", "Atabey", "Aksu", "Yenişarbademli"],
+    "İstanbul": ["Kadıköy", "Beşiktaş", "Üsküdar", "Şişli", "Bakırköy", "Maltepe", "Ataşehir", "Ümraniye", "Pendik", "Kartal", "Sarıyer", "Fatih", "Beylikdüzü", "Bahçelievler", "Başakşehir", "Beykoz", "Beyoğlu", "Büyükçekmece", "Çatalca", "Çekmeköy", "Esenler", "Esenyurt", "Eyüpsultan", "Gaziosmanpaşa", "Güngören", "Kağıthane", "Küçükçekmece", "Sancaktepe", "Silivri", "Sultanbeyli", "Sultangazi", "Şile", "Tuzla", "Zeytinburnu", "Adalar", "Arnavutköy", "Avcılar", "Bağcılar"],
+    "İzmir": ["Karşıyaka", "Konak", "Bornova", "Buca", "Çiğli", "Balçova", "Gaziemir", "Urla", "Çeşme", "Bayraklı", "Menemen", "Torbalı", "Seferihisar", "Kemalpaşa", "Aliağa", "Menderes", "Ödemiş", "Bergama", "Tire", "Dikili", "Foça", "Narlıdere", "Güzelbahçe", "Kınık", "Kiraz", "Beydağ", "Karaburun", "Selçuk"],
+    "Kahramanmaraş": ["Onikişubat", "Dulkadiroğlu", "Elbistan", "Afşin", "Türkoğlu", "Pazarcık", "Göksun", "Andırın", "Çağlayancerit", "Nurhak", "Ekinözü"],
+    "Karabük": ["Merkez", "Safranbolu", "Yenice", "Eskipazar", "Eflani", "Ovacık"],
+    "Karaman": ["Merkez", "Ermenek", "Sarıveliler", "Ayrancı", "Kazımkarabekir", "Başyayla"],
+    "Kars": ["Merkez", "Kağızman", "Sarıkamış", "Selim", "Digor", "Arpaçay", "Akyaka", "Susuz"],
+    "Kastamonu": ["Merkez", "Tosya", "Taşköprü", "Cide", "İnebolu", "Araç", "Devrekani", "Bozkurt", "Daday", "Azdavay", "Çatalzeytin", "Küre", "Doğanyurt", "İhsangazi", "Pınarbaşı", "Şenpazar", "Abana", "Seydiler", "Hanönü", "Ağlı"],
+    "Kayseri": ["Melikgazi", "Kocasinan", "Talas", "Develi", "Yahyalı", "Bünyan", "İncesu", "Pınarbaşı", "Tomarza", "Yeşilhisar", "Sarıoğlan", "Hacılar", "Sarız", "Felahiye", "Akkışla", "Özvatan"],
+    "Kilis": ["Merkez", "Musabeyli", "Elbeyli", "Polateli"],
+    "Kırıkkale": ["Merkez", "Yahşihan", "Keskin", "Delice", "Bahşılı", "Sulakyurt", "Balışeyh", "Karakeçili", "Çelebi"],
+    "Kırklareli": ["Merkez", "Lüleburgaz", "Babaeski", "Vize", "Pınarhisar", "Demirköy", "Pehlivanköy", "Kofçaz"],
+    "Kırşehir": ["Merkez", "Kaman", "Mucur", "Çiçekdağı", "Akpınar", "Boztepe", "Akçakent"],
+    "Kocaeli": ["İzmit", "Gebze", "Darıca", "Gölcük", "Körfez", "Derince", "Çayırova", "Kartepe", "Başiskele", "Karamürsel", "Kandıra", "Dilovası"],
+    "Konya": ["Selçuklu", "Meram", "Karatay", "Ereğli", "Akşehir", "Beyşehir", "Cihanbeyli", "Kulu", "Seydişehir", "Ilgın", "Bozkır", "Karapınar", "Çumra", "Sarayönü", "Yunak", "Doğanhisar", "Kadınhanı", "Hüyük", "Altınekin", "Hadim", "Çeltik", "Güneysınır", "Emirgazi", "Taşkent", "Tuzlukçu", "Akören", "Derebucak", "Halkapınar", "Yalıhüyük"],
+    "Kütahya": ["Merkez", "Tavşanlı", "Simav", "Gediz", "Emet", "Altıntaş", "Domaniç", "Hisarcık", "Aslanapa", "Çavdarhisar", "Şaphane", "Pazarlar", "Dumlupınar"],
+    "Malatya": ["Battalgazi", "Yeşilyurt", "Doğanşehir", "Akçadağ", "Darende", "Hekimhan", "Pütürge", "Yazıhan", "Arapgir", "Arguvan", "Kuluncak", "Kale", "Doğanyol"],
+    "Manisa": ["Yunusemre", "Şehzadeler", "Akhisar", "Turgutlu", "Salihli", "Soma", "Alaşehir", "Saruhanlı", "Kula", "Kırkağaç", "Demirci", "Gördes", "Selendi", "Ahmetli", "Gölmarmara", "Köprübaşı"],
+    "Mardin": ["Artuklu", "Kızıltepe", "Midyat", "Nusaybin", "Derik", "Mazıdağı", "Dargeçit", "Savur", "Yeşilli", "Ömerli"],
+    "Mersin": ["Yenişehir", "Toroslar", "Akdeniz", "Mezitli", "Tarsus", "Erdemli", "Silifke", "Anamur", "Mut", "Bozyazı", "Gülnar", "Aydıncık", "Çamlıyayla"],
+    "Muğla": ["Bodrum", "Fethiye", "Milas", "Menteşe", "Marmaris", "Seydikemer", "Ortaca", "Yatağan", "Dalaman", "Köyceğiz", "Ula", "Datça", "Kavaklıdere"],
+    "Muş": ["Merkez", "Bulanık", "Malazgirt", "Varte", "Korkut", "Hasköy"],
+    "Nevşehir": ["Merkez", "Ürgüp", "Avanos", "Gülşehir", "Derinkuyu", "Kozaklı", "Acıgöl", "Hacıbektaş"],
+    "Niğde": ["Merkez", "Bor", "Çiftlik", "Ulukışla", "Altunhisar", "Çamardı"],
+    "Ordu": ["Altınordu", "Ünye", "Fatsa", "Gölköy", "Perşembe", "Korgan", "Kumru", "Aybastı", "Kabadüz", "Mesudiye", "İkizce", "Gürgentepe", "Ulubey", "Çatalpınar", "Çaybaşı", "Kabataş", "Akkuş", "Gülyalı"],
+    "Osmaniye": ["Merkez", "Kadirli", "Düziçi", "Bahçe", "Toprakkale", "Sumbas", "Hasanbeyli"],
+    "Rize": ["Merkez", "Çayeli", "Ardeşen", "Pazar", "Fındıklı", "Güneysu", "Kalkandere", "İyidere", "Derepazarı", "Çamlıhemşin", "İkizdere", "Hemşin"],
+    "Sakarya": ["Adapazarı", "Serdivan", "Akyazı", "Erenler", "Hendek", "Karasu", "Geyve", "Arifiye", "Sapanca", "Pamukova", "Ferizli", "Kocaali", "Kaynarca", "Söğütlü", "Karapürçek", "Taraklı"],
+    "Samsun": ["İlkadım", "Atakum", "Bafra", "Çarşamba", "Canik", "Vezirköprü", "Terme", "Tekkeköy", "Havza", "Alaçam", "19 Mayıs", "Ayvacık", "Kavak", "Salıpazarı", "Asarcık", "Ladik", "Yakakent"],
+    "Siirt": ["Merkez", "Kurtalan", "Pervari", "Baykan", "Şirvan", "Eruh", "Tillo"],
+    "Sinop": ["Merkez", "Boyabat", "Gerze", "Ayancık", "Durağan", "Türkeli", "Erfelek", "Dikmen", "Saraydüzü"],
+    "Sivas": ["Merkez", "Şarkışla", "Yıldızeli", "Suşehri", "Zara", "Gemerek", "Kangal", "Divriği", "Koyulhisar", "Gürün", "Hafik", "Ulaş", "Altınyayla", "İmranlı", "Akıncılar", "Gölova", "Doğanşar"],
+    "Şanlıurfa": ["Eyyübiye", "Haliliye", "Siverek", "Viranşehir", "Karaköprü", "Akçakale", "Suruç", "Birecik", "Ceylanpınar", "Harran", "Bozova", "Hilvan", "Halfeti"],
+    "Şırnak": ["Cizre", "Silopi", "Merkez", "İdil", "Uludere", "Beytüşşebap", "Güçlükonak"],
+    "Tekirdağ": ["Süleymanpaşa", "Çorlu", "Çerkezköy", "Kapaklı", "Ergene", "Malkara", "Saray", "Hayrabolu", "Şarköy", "Muratlı", "Marmaraereğlisi"],
+    "Tokat": ["Merkez", "Erbaa", "Turhal", "Niksar", "Zile", "Reşadiye", "Almus", "Pazar", "Yeşilyurt", "Artova", "Sulusaray", "Başçiftlik"],
+    "Trabzon": ["Ortahisar", "Akçaabat", "Araklı", "Of", "Yomra", "Arsin", "Vakfıkebir", "Sürmene", "Maçka", "Beşikdüzü", "Çarşıbaşı", "Tonya", "Düzköy", "Çaykara", "Şalpazarı", "Hayrat", "Köprübaşı", "Dernekpazarı"],
+    "Tunceli": ["Merkez", "Pertek", "Mazgirt", "Çemişgezek", "Hozat", "Ovacık", "Pülümür", "Nazımiye"],
+    "Uşak": ["Merkez", "Banaz", "Eşme", "Sivaslı", "Ulubey", "Karahallı"],
+    "Van": ["İpekyolu", "Erciş", "Tuşba", "Edremit", "Özalp", "Çaldıran", "Başkale", "Muradiye", "Gürpınar", "Gevaş", "Saray", "Çatak", "Bahçesaray"],
+    "Yalova": ["Merkez", "Çiftlikköy", "Çınarcık", "Altınova", "Armutlu", "Termal"],
+    "Yozgat": ["Merkez", "Sorgun", "Akdağmadeni", "Yerköy", "Boğazlıyan", "Sarıkaya", "Çekerek", "Şefaatli", "Saraykent", "Çayıralan", "Kadışehri", "Aydıncık", "Yenifakılı", "Çandır"],
+    "Zonguldak": ["Merkez", "Ereğli", "Çaycuma", "Devrek", "Kozlu", "Alaplı", "Kilimli", "Gökçebey"]
+};
+
+// ==========================================
+// ARAÇ MARKA & MODEL VERİTABANI
+// ==========================================
+const CAR_BRANDS_MODELS = {
+    "Renault": ["Clio", "Megane", "Captur", "Kadjar", "Talisman", "Symbol", "Twingo", "Austral", "Fluence", "Zoe", "Scenic", "Laguna", "Kangoo"],
+    "Volkswagen": ["Golf", "Polo", "Passat", "Tiguan", "T-Roc", "Taigo", "Arteon", "Caddy", "Jetta", "Scirocco", "Touareg", "Transporter", "CC", "Beetle"],
+    "Fiat": ["Egea", "Punto", "Fiorino", "Doblo", "500", "500L", "500X", "Linea", "Panda", "Tipo", "Bravo", "Palio", "Albea"],
+    "Ford": ["Focus", "Fiesta", "Puma", "Kuga", "Mondeo", "Courier", "Custom", "EcoSport", "Ranger", "C-Max", "B-Max", "Ka"],
+    "BMW": ["1 Serisi", "2 Serisi", "3 Serisi", "4 Serisi", "5 Serisi", "6 Serisi", "7 Serisi", "8 Serisi", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "M3", "M4", "M5", "i4", "iX", "Z4"],
+    "Mercedes-Benz": ["A Serisi", "B Serisi", "C Serisi", "CLA", "CLS", "E Serisi", "S Serisi", "GLA", "GLB", "GLC", "GLE", "GLS", "Vito", "Citan", "SLK", "AMG GT"],
+    "Toyota": ["Corolla", "Yaris", "C-HR", "Auris", "RAV4", "Avensis", "Camry", "Hilux", "Proace", "Aygo", "Prius", "Land Cruiser"],
+    "Hyundai": ["i10", "i20", "i30", "Tucson", "Bayon", "Elantra", "Kona", "Accent", "Accent Blue", "Santa Fe", "Getz", "Ioniq"],
+    "Peugeot": ["208", "308", "408", "508", "2008", "3008", "5008", "206", "207", "301", "307", "Rifter", "Partner"],
+    "Opel": ["Corsa", "Astra", "Mokka", "Crossland", "Grandland", "Insignia", "Vectra", "Meriva", "Zafira", "Combo"],
+    "Honda": ["Civic", "City", "CR-V", "HR-V", "Jazz", "Accord", "Civic Type R"],
+    "Audi": ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "RS3", "RS6"],
+    "Seat": ["Leon", "Ibiza", "Ateca", "Arona", "Tarraco", "Toledo", "Altea"],
+    "Skoda": ["Octavia", "Superb", "Fabia", "Scala", "Kamiq", "Karoq", "Kodiaq", "Rapid", "Yeti"],
+    "Citroen": ["C3", "C3 Aircross", "C4", "C4 Aircross", "C5 Aircross", "C-Elysee", "Berlingo", "Ami", "Nemo"],
+    "Kia": ["Ceed", "Rio", "Sportage", "Stonic", "Picanto", "Cerato", "Sorento", "XCeed", "EV6", "Niro"],
+    "Volvo": ["XC40", "XC60", "XC90", "S60", "S90", "V40", "V60", "V90", "C40"],
+    "Nissan": ["Qashqai", "Juke", "Micra", "X-Trail", "Navara", "Pulsar", "Primera", "Almera"],
+    "Dacia": ["Sandero", "Sandero Stepway", "Duster", "Jogger", "Spring", "Lodgy", "Dokker"],
+    "Chery": ["Omoda 5", "Tiggo 7 Pro", "Tiggo 8 Pro"],
+    "Cupra": ["Formentor", "Leon", "Born", "Ateca"],
+    "Tesla": ["Model 3", "Model Y", "Model S", "Model X"],
+    "Togg": ["T10X"]
+};
+
+// Sayfa yüklendiğinde datalist'leri hazırla
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Şehir Listesi Doldur
+    const cityList = document.getElementById('city-list');
+    if (cityList) {
+        Object.keys(TURKEY_LOCATIONS).sort().forEach(city => {
+            const opt = document.createElement('option');
+            opt.value = city;
+            cityList.appendChild(opt);
+        });
+    }
+
+    // 2. Marka Listesi Doldur
+    const brandList = document.getElementById('brand-list');
+    if (brandList) {
+        Object.keys(CAR_BRANDS_MODELS).sort().forEach(brand => {
+            const opt = document.createElement('option');
+            opt.value = brand;
+            brandList.appendChild(opt);
+        });
+    }
+});
+
+// Şehir seçildiğinde veya yazıldığında ilçeleri güncelle
+function onCityChange(cityName) {
+    const townList = document.getElementById('town-list');
+    const townInput = document.getElementById('town');
+    const townHint = document.getElementById('town-hint');
+    if (!townList) return;
+
+    townList.innerHTML = '';
+    const normalized = cityName.trim();
+
+    // Büyük/küçük harf duyarsız eşleme
+    const matchedCity = Object.keys(TURKEY_LOCATIONS).find(
+        c => c.localeCompare(normalized, 'tr', { sensitivity: 'accent' }) === 0
+    );
+
+    if (matchedCity && TURKEY_LOCATIONS[matchedCity]) {
+        TURKEY_LOCATIONS[matchedCity].forEach(district => {
+            const opt = document.createElement('option');
+            opt.value = district;
+            townList.appendChild(opt);
+        });
+        if (townHint) townHint.textContent = `${matchedCity} İlçeleri Aktif`;
+    } else {
+        if (townHint) townHint.textContent = "İl seçilince güncellenir";
+    }
+}
+
+// Hızlı Şehir Butonuna Basıldığında
+function selectCity(cityName) {
+    const cityInput = document.getElementById('city');
+    if (cityInput) {
+        cityInput.value = cityName;
+        onCityChange(cityName);
+        // İlçe kutusuna odaklan
+        const townInput = document.getElementById('town');
+        if (townInput) townInput.focus();
+    }
+}
+
+// Marka seçildiğinde modelleri güncelle
+function onBrandChange(brandName) {
+    const modelList = document.getElementById('model-list');
+    if (!modelList) return;
+
+    modelList.innerHTML = '';
+    const normalized = brandName.trim();
+
+    const matchedBrand = Object.keys(CAR_BRANDS_MODELS).find(
+        b => b.localeCompare(normalized, 'tr', { sensitivity: 'accent' }) === 0
+    );
+
+    if (matchedBrand && CAR_BRANDS_MODELS[matchedBrand]) {
+        CAR_BRANDS_MODELS[matchedBrand].forEach(model => {
+            const opt = document.createElement('option');
+            opt.value = model;
+            modelList.appendChild(opt);
+        });
+    }
+}
+
+// Kategori değiştiğinde alanları göster/gizle
 function toggleCategoryFields(category) {
     const vasitaDiv = document.getElementById('vasita-filters');
     const emlakDiv = document.getElementById('emlak-filters');

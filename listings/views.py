@@ -8,7 +8,7 @@ from .models import UserProfile, SearchTarget, ScrapedListing
 from urllib.parse import urlencode
 
 
-def build_sahibinden_url(category, city, brand, model_name, keywords):
+def build_sahibinden_url(category, city="", town="", brand="", model_name="", keywords=""):
     """Eğer kullanıcı özel bir link yapıştırmadıysa otomatik Sahibinden arama URL'i üretir."""
     query_parts = []
     if brand:
@@ -19,9 +19,12 @@ def build_sahibinden_url(category, city, brand, model_name, keywords):
         query_parts.append(keywords.replace(',', ' '))
     if city:
         query_parts.append(city)
+    if town:
+        query_parts.append(town)
 
-    query_str = " ".join(query_parts).strip()
-    if query_str:
+    clean_parts = [p.strip() for p in query_parts if p and p.strip()]
+    if clean_parts:
+        query_str = " ".join(clean_parts)
         return f"https://www.sahibinden.com/kelime-ile-arama?{urlencode({'query_text': query_str})}"
     elif category == 'vasita':
         return "https://www.sahibinden.com/otomobil"
@@ -180,6 +183,7 @@ def add_target_view(request):
             search_url = build_sahibinden_url(
                 category=category,
                 city=city,
+                town=town,
                 brand=filter_criteria.get('brand'),
                 model_name=filter_criteria.get('model'),
                 keywords=keywords

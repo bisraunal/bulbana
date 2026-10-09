@@ -115,7 +115,7 @@
 
                             <div class="text-[11px] text-slate-400 flex items-center justify-between">
                                 <span>Son Tarama: {{ target.last_checked_at|date:"H:i (d M)"|default:"Henüz taranmadı" }}</span>
-                                <a href="{{ target.search_url }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="text-amber-600 hover:underline flex items-center font-medium">
+                                <a href="{{ target.search_url|default:'https://www.sahibinden.com' }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="text-amber-600 hover:underline flex items-center font-medium">
                                     Sahibinden Filtresi <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[10px]"></i>
                                 </a>
                             </div>
@@ -201,7 +201,7 @@
 
                         <!-- Footer Link Button -->
                         <div class="p-4 pt-0">
-                            <a href="{{ listing.listing_url }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"
+                            <a href="{{ listing.listing_url|default:listing.target.search_url|default:'https://www.sahibinden.com' }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"
                                 class="w-full flex items-center justify-center py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition-all">
                                 Sahibinden'de İncele <i class="fa-solid fa-arrow-up-right-from-square ml-1.5 text-[10px] text-amber-400"></i>
                             </a>
