@@ -22,7 +22,7 @@ class Command(BaseCommand):
                 "town": "Kadıköy",
                 "min_price": 500000,
                 "max_price": 750000,
-                "search_url": "https://www.sahibinden.com/kelime-ile-arama?query_text=Renault+Clio+K%C4%B1rm%C4%B1z%C4%B1",
+                "search_url": "https://www.sahibinden.com/arama?query_text=Renault+Clio+K%C4%B1rm%C4%B1z%C4%B1",
                 "filter_criteria": {
                     "brand": "Renault",
                     "model": "Clio",
@@ -47,7 +47,7 @@ class Command(BaseCommand):
                 "town": "Kadıköy",
                 "min_price": 25000,
                 "max_price": 40000,
-                "search_url": "https://www.sahibinden.com/kelime-ile-arama?query_text=%C4%B0stanbul+Kad%C4%B1k%C3%B6y+2%2B1+kiralik+daire",
+                "search_url": "https://www.sahibinden.com/arama?query_text=%C4%B0stanbul+Kad%C4%B1k%C3%B6y+2%2B1+kiralik+daire",
                 "filter_criteria": {
                     "type": "Kiralık Daire",
                     "room_count": "2+1",
@@ -69,7 +69,7 @@ class Command(BaseCommand):
                 "location": "İstanbul / Kadıköy",
                 "published_date": "Bugün 13:45",
                 "image_url": "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=600&q=80",
-                "listing_url": "https://www.sahibinden.com/kelime-ile-arama?query_text=Renault+Clio+K%C4%B1rm%C4%B1z%C4%B1",
+                "listing_url": "https://www.sahibinden.com/arama?query_text=Renault+Clio+K%C4%B1rm%C4%B1z%C4%B1",
                 "is_notified": True
             }
         )
@@ -83,7 +83,7 @@ class Command(BaseCommand):
                 "location": "İstanbul / Kadıköy",
                 "published_date": "Bugün 14:10",
                 "image_url": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80",
-                "listing_url": "https://www.sahibinden.com/kelime-ile-arama?query_text=%C4%B0stanbul+Kad%C4%B1k%C3%B6y+2%2B1+kiralik+daire",
+                "listing_url": "https://www.sahibinden.com/arama?query_text=%C4%B0stanbul+Kad%C4%B1k%C3%B6y+2%2B1+kiralik+daire",
                 "is_notified": True
             }
         )

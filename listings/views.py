@@ -25,7 +25,7 @@ def build_sahibinden_url(category, city="", town="", brand="", model_name="", ke
     clean_parts = [p.strip() for p in query_parts if p and p.strip()]
     if clean_parts:
         query_str = " ".join(clean_parts)
-        return f"https://www.sahibinden.com/kelime-ile-arama?{urlencode({'query_text': query_str})}"
+        return f"https://www.sahibinden.com/arama?{urlencode({'query_text': query_str})}"
     elif category == 'vasita':
         return "https://www.sahibinden.com/otomobil"
     elif category == 'emlak':
